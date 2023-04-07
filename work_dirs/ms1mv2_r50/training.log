@@ -1,0 +1,77 @@
+Training: 2023-04-07 16:35:37,509-rank_id: 0
+Training: 2023-04-07 16:36:14,651-rank_id: 0
+Training: 2023-04-07 16:36:17,812-: margin_list              [1.0, 0.5, 0.0]
+Training: 2023-04-07 16:36:17,812-: network                  r50
+Training: 2023-04-07 16:36:17,812-: resume                   False
+Training: 2023-04-07 16:36:17,812-: save_all_states          False
+Training: 2023-04-07 16:36:17,812-: output                   work_dirs/ms1mv2_r50
+Training: 2023-04-07 16:36:17,812-: embedding_size           512
+Training: 2023-04-07 16:36:17,812-: sample_rate              1.0
+Training: 2023-04-07 16:36:17,812-: interclass_filtering_threshold0
+Training: 2023-04-07 16:36:17,812-: fp16                     True
+Training: 2023-04-07 16:36:17,812-: batch_size               128
+Training: 2023-04-07 16:36:17,812-: optimizer                sgd
+Training: 2023-04-07 16:36:17,812-: lr                       0.1
+Training: 2023-04-07 16:36:17,812-: momentum                 0.9
+Training: 2023-04-07 16:36:17,812-: weight_decay             0.0005
+Training: 2023-04-07 16:36:17,812-: verbose                  2000
+Training: 2023-04-07 16:36:17,812-: frequent                 10
+Training: 2023-04-07 16:36:17,812-: dali                     False
+Training: 2023-04-07 16:36:17,812-: gradient_acc             1
+Training: 2023-04-07 16:36:17,812-: seed                     2048
+Training: 2023-04-07 16:36:17,812-: num_workers              2
+Training: 2023-04-07 16:36:17,812-: wandb_key                XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+Training: 2023-04-07 16:36:17,812-: suffix_run_name          None
+Training: 2023-04-07 16:36:17,812-: using_wandb              False
+Training: 2023-04-07 16:36:17,812-: wandb_entity             entity
+Training: 2023-04-07 16:36:17,812-: wandb_project            project
+Training: 2023-04-07 16:36:17,812-: wandb_log_all            True
+Training: 2023-04-07 16:36:17,812-: save_artifacts           False
+Training: 2023-04-07 16:36:17,812-: wandb_resume             False
+Training: 2023-04-07 16:36:17,812-: rec                      /home/pc0/projects/data/ms1m-retinaface-t1
+Training: 2023-04-07 16:36:17,812-: num_classes              85742
+Training: 2023-04-07 16:36:17,812-: num_image                5822653
+Training: 2023-04-07 16:36:17,812-: num_epoch                20
+Training: 2023-04-07 16:36:17,812-: warmup_epoch             0
+Training: 2023-04-07 16:36:17,812-: val_targets              ['lfw', 'cfp_fp', 'agedb_30']
+Training: 2023-04-07 16:36:17,812-: total_batch_size         128
+Training: 2023-04-07 16:36:17,812-: warmup_step              0
+Training: 2023-04-07 16:36:17,812-: total_step               909780
+Training: 2023-04-07 16:39:04,178-rank_id: 0
+Training: 2023-04-07 16:39:06,983-: margin_list              [1.0, 0.5, 0.0]
+Training: 2023-04-07 16:39:06,983-: network                  r50
+Training: 2023-04-07 16:39:06,984-: resume                   False
+Training: 2023-04-07 16:39:06,984-: save_all_states          False
+Training: 2023-04-07 16:39:06,984-: output                   work_dirs/ms1mv2_r50
+Training: 2023-04-07 16:39:06,984-: embedding_size           512
+Training: 2023-04-07 16:39:06,984-: sample_rate              1.0
+Training: 2023-04-07 16:39:06,984-: interclass_filtering_threshold0
+Training: 2023-04-07 16:39:06,984-: fp16                     True
+Training: 2023-04-07 16:39:06,984-: batch_size               128
+Training: 2023-04-07 16:39:06,984-: optimizer                sgd
+Training: 2023-04-07 16:39:06,984-: lr                       0.1
+Training: 2023-04-07 16:39:06,984-: momentum                 0.9
+Training: 2023-04-07 16:39:06,984-: weight_decay             0.0005
+Training: 2023-04-07 16:39:06,984-: verbose                  2000
+Training: 2023-04-07 16:39:06,984-: frequent                 10
+Training: 2023-04-07 16:39:06,984-: dali                     False
+Training: 2023-04-07 16:39:06,984-: gradient_acc             1
+Training: 2023-04-07 16:39:06,984-: seed                     2048
+Training: 2023-04-07 16:39:06,984-: num_workers              2
+Training: 2023-04-07 16:39:06,984-: wandb_key                XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+Training: 2023-04-07 16:39:06,984-: suffix_run_name          None
+Training: 2023-04-07 16:39:06,984-: using_wandb              False
+Training: 2023-04-07 16:39:06,984-: wandb_entity             entity
+Training: 2023-04-07 16:39:06,984-: wandb_project            project
+Training: 2023-04-07 16:39:06,984-: wandb_log_all            True
+Training: 2023-04-07 16:39:06,984-: save_artifacts           False
+Training: 2023-04-07 16:39:06,984-: wandb_resume             False
+Training: 2023-04-07 16:39:06,984-: rec                      /home/pc0/projects/data/ms1m-retinaface-t1
+Training: 2023-04-07 16:39:06,984-: num_classes              85742
+Training: 2023-04-07 16:39:06,984-: num_image                5822653
+Training: 2023-04-07 16:39:06,984-: num_epoch                20
+Training: 2023-04-07 16:39:06,984-: warmup_epoch             0
+Training: 2023-04-07 16:39:06,984-: val_targets              ['lfw', 'cfp_fp', 'agedb_30']
+Training: 2023-04-07 16:39:06,984-: total_batch_size         128
+Training: 2023-04-07 16:39:06,984-: warmup_step              0
+Training: 2023-04-07 16:39:06,984-: total_step               909780
