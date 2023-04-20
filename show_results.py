@@ -57,28 +57,22 @@ def calculate_metrics(embeddings: np.ndarray):
     return mean_l2, mean_angles
 
 
-def compare_angles_distances(embeddings: np.ndarray):
-    # Взять случайный семпл из каждого класса
-    # Посчитать расстояние от него до всех центроидов
-
-    # (b, 1, sample_dim)
-    centroids = calc_centroids(embeddings, keep_deem=True)
+def angular_to_centroids(embeddings: np.ndarray, centroids: np.ndarray):
+    # Берётся случайный семпл из каждого класса и вычисляются расстояния
+    # до всех центроидов
+    # shape (n_classes, n_classes)
     n_classes, n_samples = embeddings.shape[:2]
 
-    # (b, b)
-    angles: List[np.ndarray] = []
+    classes_distances = []
     for i in range(n_classes):
         j = random.randint(0, n_samples - 1)
-        # embeddings[i, j] (512,)
-        # embeddings[i, j][None, :] (1, 512)
+        rand_sample = embeddings[i, j]
 
-        # (b, 1, sample_dim)
-        till_sample = np.tile(embeddings[i, j], (n_classes, 1, 1))
-        # (b, 1)
-        angles.append(calculate_angles(till_sample, centroids))
+        classes_distances.append(
+            angular_one2many(rand_sample, centroids))
+    classes_distances = np.array(classes_distances)
 
-    angles = np.array(angles).squeeze()
-    nearest_idxs = np.argmin(angles, axis=1)
+    nearest_idxs = np.argmin(classes_distances, axis=1)
     print('Nearest indexes:', nearest_idxs, sep='\n')
     mask = np.arange(n_classes)
     correct = np.sum(nearest_idxs == mask)
