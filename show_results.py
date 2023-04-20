@@ -17,20 +17,18 @@ def calc_centroids(arr: np.ndarray, keep_deem=False) -> np.ndarray:
 
 
 def create_embeddings_plots(embeddings: np.ndarray):
-    centroids_embeddings = calc_centroids(embeddings)
-
     n_columns = 15
     n_rows = np.ceil(
-        centroids_embeddings.shape[0] / n_columns).astype(np.int16)
+        embeddings.shape[0] / n_columns).astype(np.int16)
 
     fig, axs = plt.subplots(n_rows, n_columns)
     fig.set_size_inches(20.0, 20.0, forward=True)
     fig.suptitle('Centroids embeddings.')
-    for i in range(centroids_embeddings.shape[0]):
+    for i in range(embeddings.shape[0]):
         row = i // n_columns
         column = i % n_columns
 
-        axs[row][column].plot(centroids_embeddings[i])
+        axs[row][column].plot(embeddings[i])
     return fig
 
 
