@@ -36,6 +36,33 @@ def calc_l2(arr1: np.ndarray, arr2: np.ndarray) -> np.ndarray:
     return np.sqrt((arr1 - arr2) ** 2)
 
 
+def mean_angular_distances(
+    embeddings: np.ndarray, centroids: np.ndarray
+) -> np.ndarray:
+    """
+    Берётся центроид и ембединги семплов каждого класса и вычисляется
+    средний угол между ембедингами и центроидом соответствующего класса.
+
+    Args:
+        embeddings (np.ndarray): shape is `(n_classes, n_samples, embed_dim)`.
+        centroids (np.ndarray): shape is `(n_classes, embed_dim)`.
+
+    Returns:
+        np.ndarray: shape is `(n_classes,)`
+    """
+    n_classes = embeddings.shape[0]
+    classes_distances = []
+    for cls in range(n_classes):
+        cls_centroid = centroids[cls]
+        cls_embeddings = embeddings[cls]
+        classes_distances.append(
+            angular_one2many(cls_centroid, cls_embeddings))
+
+    classes_distances = np.array(classes_distances)
+    mean_classes_distances = np.mean(classes_distances, axis=1)
+    return mean_classes_distances
+    
+
 def calculate_metrics(embeddings: np.ndarray):
     norm_embeddings = normalize(embeddings)
     
