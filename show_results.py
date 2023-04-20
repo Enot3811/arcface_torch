@@ -1,6 +1,5 @@
 from pathlib import Path
 import random
-from typing import List
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,10 +9,6 @@ from inference import inference
 
 def normalize(arr: np.ndarray) -> np.ndarray:
     return (arr - arr.min()) / (arr.max() - arr.min())
-
-
-def calc_centroids(arr: np.ndarray, keep_deem=False) -> np.ndarray:
-    return arr.mean(axis=1, keepdims=keep_deem)
 
 
 def create_embeddings_plots(embeddings: np.ndarray):
@@ -61,28 +56,9 @@ def mean_angular_distances(
     classes_distances = np.array(classes_distances)
     mean_classes_distances = np.mean(classes_distances, axis=1)
     return mean_classes_distances
-    
-
-def calculate_metrics(embeddings: np.ndarray):
-    norm_embeddings = normalize(embeddings)
-    
-    norm_centroids_embeddings = calc_centroids(norm_embeddings, True)
-    
-    n_classes, n_samples = norm_embeddings.shape[:2]
-
-    tile_norm_centroids = np.tile(
-        norm_centroids_embeddings, (1, n_samples, 1))
-
-    mean_l2 = np.mean(
-        calc_l2(tile_norm_centroids, norm_embeddings), axis=(2, 1))
-
-    mean_angles = np.mean(
-        calculate_angles(tile_norm_centroids, norm_embeddings), axis=1)
-
-    return mean_l2, mean_angles
 
 
-def angular_to_centroids(embeddings: np.ndarray, centroids: np.ndarray):
+def angular_sample_to_centroids(embeddings: np.ndarray, centroids: np.ndarray):
     # Берётся случайный семпл из каждого класса и вычисляются расстояния
     # до всех центроидов
     # shape (n_classes, n_classes)
@@ -103,40 +79,7 @@ def angular_to_centroids(embeddings: np.ndarray, centroids: np.ndarray):
     correct = np.sum(nearest_idxs == mask)
     print('Correct:', correct, 'Total:', n_classes,
           'Accuracy', correct / n_classes)
-
-
-def main():
-    embeddings_path = Path(
-        __file__).parents[1] / 'data' / 'img_dataset' / 'results.npy'
-    embeddings: np.ndarray = np.load(embeddings_path)
-
-    create_embeddings_plots(embeddings)
-    mean_l2, mean_angles = calculate_metrics(embeddings)
     
-    print('l2:', mean_l2, sep='\n')
-    print('Angles:', mean_angles, sep='\n')
-
-    fig, axs = plt.subplots(1, 2)
-    axs[0].plot(mean_l2)
-    axs[1].plot(mean_angles)
-    # plt.show()
-
-    compare_angles_distances(normalize(embeddings))
-
-
-    checkpoint_path = 'checkpoints/backbone.pth'
-    model_name = 'r50'
-    images = ['../data/test_sattelite_112x112.png']
-
-    n_classes = embeddings.shape[0]
-    results = [inference(checkpoint_path, model_name, img) for img in images]
-    result = normalize(results[0])  # (1, 512)
-    angles = calculate_angles(
-        calc_centroids(normalize(embeddings), keep_deem=True),
-        np.tile(result, (n_classes, 1, 1))).squeeze()
-    
-    print(np.argmin(angles))
-
 
 def angular_one2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
     """
@@ -172,6 +115,43 @@ def angular_many2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
     cosine = np.sum(v1 * v2, axis=1) / (np.linalg.norm(v1, axis=1) *
                                         np.linalg.norm(v2, axis=1))
     return np.arccos(cosine)
+
+
+def main():
+    # Get results embeddings
+    embeddings_path = Path(
+        __file__).parents[1] / 'data' / 'img_dataset' / 'results.npy'
+    embeddings: np.ndarray = np.load(embeddings_path)
+
+    norm_embed = normalize(embeddings)
+    embed_centroids = norm_embed.mean(axis=1)
+
+    n_classes, n_samples, embed_dim = embeddings.shape
+    create_embeddings_plots(embed_centroids)
+
+    
+    mean_angles = mean_angular_distances(norm_embed, embed_centroids)
+
+    print('Angles:', mean_angles, sep='\n')
+
+    fig, axs = plt.subplots(1, 1)
+    axs.plot(mean_angles)
+    # plt.show()
+
+    angular_sample_to_centroids(norm_embed, embed_centroids)
+
+
+    # реальная картинка
+    checkpoint_path = 'checkpoints/backbone.pth'
+    model_name = 'r50'
+    images = ['../data/test_sattelite_112x112.png']
+
+    n_classes = embeddings.shape[0]
+    results = [inference(checkpoint_path, model_name, img) for img in images]
+    result = normalize(results[0]).squeeze()  # (1, 512)
+    angles = angular_one2many(result, embed_centroids)
+    
+    print('Predicted class:', np.argmin(angles))
 
 
 if __name__ == '__main__':
