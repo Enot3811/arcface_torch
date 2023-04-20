@@ -38,38 +38,6 @@ def calc_l2(arr1: np.ndarray, arr2: np.ndarray) -> np.ndarray:
     return np.sqrt((arr1 - arr2) ** 2)
 
 
-def calculate_angles(arr1: np.ndarray, arr2: np.ndarray) -> np.ndarray:
-    """
-    Calculate batched angular distance
-
-    Args:
-        arr1 (np.ndarray): Shape is `(b, n_samples, sample_dim)`
-        arr2 (np.ndarray): Shape is `(b, n_samples, sample_dim)`
-
-    Returns:
-        np.ndarray: Shape is `(b, n_samples)`
-    """    
-    mult_norms = (np.linalg.norm(arr1, axis=2) *
-                  np.linalg.norm(arr2, axis=2))
-    
-    n_classes, n_samples = arr1.shape[:2]
-
-    classes_scalar_mult = []
-    for i in range(n_classes):
-        scalar_mult = []
-        for j in range(n_samples):
-        
-            scalar_mult.append(
-                np.dot(arr1[i, j], arr2[i, j]))
-            
-        classes_scalar_mult.append(np.array(scalar_mult))
-    classes_scalar_mult = np.array(classes_scalar_mult)
-
-    cos = classes_scalar_mult / mult_norms
-    angles = np.arccos(cos) * 180.0 / np.pi
-    return angles
-    
-
 def calculate_metrics(embeddings: np.ndarray):
     norm_embeddings = normalize(embeddings)
     
@@ -150,6 +118,41 @@ def main():
     
     print(np.argmin(angles))
 
+
+def angular_one2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
+    """
+    Calculate angles in radians between a vector v1 and a batch of vectors v2.
+
+    Args:
+        v1 (np.ndarray): The vector with shape `(vector_dim,)`.
+        v2 (np.ndarray): The batch of vectors with shape
+        `(n_vectors, vector_dim)`.
+
+    Returns:
+        np.ndarray: The angles array with shape `(n_vectors,)`.
+    """
+    cosine = np.dot(v1, v2.T)/(np.linalg.norm(v1) * np.linalg.norm(v2, axis=1))
+    return np.arccos(cosine)
+
+
+def angular_many2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
+    """
+    Calculate one to one angles in radians between batches of vectors
+    v1 and v2.
+    First element of v1 with first element of v2, second with second e.t.c.
+
+    Args:
+        v1 (np.ndarray): The batch of vectors with shape
+        `(n_vectors, vector_dim)`.
+        v2 (np.ndarray): The batch of vectors with shape
+        `(n_vectors, vector_dim)`.
+
+    Returns:
+        np.ndarray: The angles array with shape `(n_vectors,)`
+    """
+    cosine = np.sum(v1 * v2, axis=1) / (np.linalg.norm(v1, axis=1) *
+                                        np.linalg.norm(v2, axis=1))
+    return np.arccos(cosine)
 
 
 if __name__ == '__main__':
