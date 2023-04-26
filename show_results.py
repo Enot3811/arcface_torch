@@ -144,6 +144,31 @@ def angular_many2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
     return np.arccos(cosine)
 
 
+def heatmap_on_map(map_path: Path = None, heatmap_path: Path = None):
+    if map_path is None:
+        map_path = Path(__file__).parents[1] / 'data' / 'heatmap.png'
+    map_img = cv2.imread(str(map_path))
+    if heatmap_path is None:
+        heatmap_path = Path(__file__).parents[1] / 'data' / 'road_map.png'
+    heatmap = cv2.imread(str(heatmap_path))
+
+    w, h = map_img.shape[:2]
+    factor = w / h
+
+    new_size = (1024, int(1024 * factor))
+    map_img = cv2.resize(map_img, dsize=new_size, interpolation=cv2.INTER_CUBIC)
+    heatmap = cv2.resize(heatmap, dsize=new_size, interpolation=cv2.INTER_CUBIC)
+
+    rows, cols, channels = heatmap.shape
+    roi = map_img[0:rows, 0:cols]
+
+    modified = cv2.addWeighted(roi, 0.5, heatmap, 0.5, 0.0)
+    map_img[0:rows, 0:cols] = modified
+    cv2.imshow('Image', map_img)
+    cv2.waitKey(20000)
+    cv2.destroyAllWindows()
+
+
 def main():
     n_rows = 9
     n_columns = 14
