@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Tuple
+from typing import Callable, List, Tuple
 
 import torch
 import torchvision.transforms as transforms
@@ -24,7 +24,7 @@ def intersect_dicts(da, db, exclude=()):
 def load_and_infer():
     checkpoint_path = 'checkpoints/backbone.pth'
     model_name = 'r50'
-    images = ['../data/test_sattelite_112x112.png']
+    images = ['../data/test_satellite_112x112.png']
 
     results = [inference(checkpoint_path, model_name, img) for img in images]
 
@@ -48,11 +48,7 @@ def show_grid(
     return fig, axs
 
 
-def main():
-    # i, j = np.ogrid[:11, :8]
-    # arr = 10*i + j
-    # print(arr.shape)
-    # print(arr, '\n')
+def create_augmented_images():
     arr = cv2.imread('/home/pc0/projects/arcface/data/road_map.png')
     orig_y, orig_x = arr.shape[:2]
     arr = cv2.resize(arr, dsize=(orig_y // 20, orig_x // 20), interpolation=cv2.INTER_CUBIC)
@@ -122,6 +118,104 @@ def augm1():
         key = cv2.waitKey(20000)
         if key == 27:
             break
+
+
+class RegionGetting:
+
+    def __init__(
+        self,
+        image_size: Tuple[int, int],
+        region_size: Tuple[int, int],
+        stride: int = None,
+        regions_per_image: int = 2,
+        region_margin: int = 1
+    ):
+        self.region_margin = region_margin
+        self.regions_per_image = regions_per_image
+        self.image_size = image_size
+
+        h, w = image_size
+        w_reg, h_reg = region_size
+
+        if stride is None:
+            stride = w_reg
+        
+        self.x_indexer = (
+            torch.arange(0, w_reg)[None, :] +
+            torch.arange(0, w - w_reg - 1, stride)[None, :].T
+        )
+        self.y_indexer = (
+            torch.arange(0, h_reg)[None, :] +
+            torch.arange(0, h - h_reg - 1, stride)[None, :].T
+        )
+
+        self.x_windows = self.x_indexer.size(0)
+        self.y_windows = self.y_indexer.size(0)
+
+    def __call__(self, img: torch.Tensor) -> List[torch.Tensor]:
+        h, w = self.image_size
+        
+        available_regions = torch.ones(
+            self.x_windows, self.y_windows, dtype=torch.bool)
+        
+        gotten_regions = []
+        while len(gotten_regions) != self.regions_per_image:
+            x_idx = torch.randint(0, self.x_windows, ())
+            y_idx = torch.randint(0, self.y_windows, ())
+
+            if available_regions[x_idx, y_idx]:
+                x_idx = self.x_indexer[x_idx]
+                y_idx = self.y_indexer[y_idx]
+
+                gotten_regions.append(img[:, x_idx][:, :, y_idx])
+                # TODO Вывести полученный кусочек. Убедиться, что всё ок
+                # И вообще продебажить всё, что снизу
+
+                _start_bl = max(0, x_idx)
+                _end_bl = min(_start_bl + self.region_margin, w)
+                x_blocking = slice(_start_bl, _end_bl)
+                _start_bl = max(0, y_idx)
+                _end_bl = min(_start_bl + self.region_margin, h)
+                y_blocking = slice(_start_bl, _end_bl)
+                available_regions[x_blocking, y_blocking] = False
+        return gotten_regions
+
+
+class RegionsDataset(torch.utils.data.Dataset):
+
+    def __init__(
+        self,
+        image_directory: Path,
+        processing: Callable = None,
+        **kwargs
+    ):
+        self.images = list(map(str, image_directory.rglob('*.jpg')))
+        self.processing = processing
+        super().__init__(**kwargs)
+
+    def __len__(self) -> int:
+        return len(self.images)
+    
+    def __getitem__(self, idx: int):
+        img = cv2.imread(self.images[idx])
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = torch.tensor(img).permute(2, 0, 1)
+
+        if self.processing is not None:
+            img = self.processing(img)
+        return img
+
+
+def main():
+    path = Path(__file__).parents[1] / 'data' / 'satellite_small' / 'train'
+    dset = RegionsDataset(path)
+    img = next(iter(dset))
+
+    img_size = img.shape[1:]
+    reg_size = (112, 112)
+
+    reg_get = RegionGetting(img_size, reg_size)
+    regions = reg_get(img)
 
 
 if __name__ == '__main__':
