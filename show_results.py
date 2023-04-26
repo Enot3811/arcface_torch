@@ -1,8 +1,10 @@
 from pathlib import Path
 import random
+from typing import Tuple
 
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from inference import inference
 
@@ -143,10 +145,13 @@ def angular_many2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
 
 
 def main():
+    n_rows = 9
+    n_columns = 14
+
     # Get results embeddings
     embeddings_path = Path(
-        __file__).parents[1] / 'data' / 'img_dataset' / 'results.npy'
-    embeddings: np.ndarray = np.load(embeddings_path)
+        __file__).parents[1] / 'data' / 'road_dataset_small' / 'results.npy'
+    embeddings: np.ndarray = np.load(embeddings_path)  # n_cls x n_samp x embed
 
     norm_embed = normalize(embeddings)
     embed_centroids = norm_embed.mean(axis=1)
