@@ -1,5 +1,24 @@
 import torch
 import numpy as np
+def intersect_dicts(da, db, exclude=()):
+    # Dictionary intersection of matching keys and shapes,
+    # omitting 'exclude' keys, using da values
+    return {
+        k: v
+        for k, v in da.items()
+        if (k in db and not any(x in k for x in exclude)
+            and v.shape == db[k].shape)
+    }
+
+
+def load_and_infer():
+    checkpoint_path = 'checkpoints/backbone.pth'
+    model_name = 'r50'
+    images = ['../data/test_sattelite_112x112.png']
+
+    results = [inference(checkpoint_path, model_name, img) for img in images]
+
+
 def show_grid(
     arr: np.ndarray,
     h: int,
@@ -70,3 +89,26 @@ def get_augmentation():
             transforms=[transforms.ElasticTransform(alpha=100.0)]),
     ])
 
+
+def augm1():
+    import torchvision
+    
+    transforms = torchvision.transforms.Compose([
+        torchvision.transforms.Resize((512, 512)),
+        torchvision.transforms.ColorJitter(
+            brightness=0.5,
+            contrast=0.5,
+            saturation=0.5,
+            hue=0.5
+        ),
+        torchvision.transforms.RandomRotation(360)
+    ])
+
+    path = Path(__file__).parents[1] / 'data' / 'satellite_small'
+
+    dset = torchvision.datasets.ImageFolder(str(path), transforms)
+    for i, (image, label) in enumerate(dset):
+        cv2.imshow(f'Img {i + 1}', np.array(image))
+        key = cv2.waitKey(20000)
+        if key == 27:
+            break
