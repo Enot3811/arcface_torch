@@ -178,6 +178,27 @@ def main():
     
     print('Predicted class:', np.argmin(angles))
 
+    one_samples1 = norm_embed[:, 0, :]
+    one_samples2 = norm_embed[:, 1, :]
+    similarity = np.vstack([angular_one2many(one_samples1[i], one_samples2)
+                            for i in range(n_classes)])
+    fig, ax = plt.subplots(1, 1)
+    plt.imshow(similarity)
+    print(similarity)
+
+    _, accuracy_per_class = classify_samples(norm_embed, embed_centroids)
+    accuracy_per_class = accuracy_per_class.reshape(n_rows, n_columns)
+
+    print('Accuracy:', np.mean(accuracy_per_class))
+
+    fig, ax = plt.subplots(1, 1)
+    fig.suptitle('Accuracy heatmap')
+    sns.heatmap(accuracy_per_class, annot=True, ax=ax, annot_kws={'size': 25})
+    # plt.savefig('heatmap.jpg')
+    plt.show()
+    
+
+
 
 if __name__ == '__main__':
     main()
