@@ -81,6 +81,31 @@ def angular_sample_to_centroids(embeddings: np.ndarray, centroids: np.ndarray):
           'Accuracy', correct / n_classes)
     
 
+def classify_samples(
+    embeddings: np.ndarray, centroids: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray]:
+    # Return predicted indexes for every sample (shape n_cls x n_samples)
+    # and accuracy per class (shape n_cls,)
+    # embeddings shape (n_classes, )
+    n_classes, n_samples = embeddings.shape[:2]
+
+    classes_distances = []
+    for i in range(n_classes):
+        cur_distances = []
+        for j in range(n_samples):
+        
+            current_sample = embeddings[i, j]
+
+            cur_distances.append(angular_one2many(current_sample, centroids))
+        classes_distances.append(np.array(cur_distances))
+    classes_distances = np.array(classes_distances)
+
+    nearest_idxs = np.argmin(classes_distances, axis=-1)
+    gt_idxs = np.tile(np.arange(n_classes)[:, None], (1, 20))
+    accuracy_per_class = np.sum(nearest_idxs == gt_idxs, axis=-1) / n_samples
+    return nearest_idxs, accuracy_per_class
+    
+
 def angular_one2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
     """
     Calculate angles in radians between a vector v1 and a batch of vectors v2.
