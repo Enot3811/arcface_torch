@@ -1,5 +1,15 @@
+from pathlib import Path
+from typing import Tuple
+
 import torch
+import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
 import numpy as np
+import cv2
+
+from inference import inference
+
+
 def intersect_dicts(da, db, exclude=()):
     # Dictionary intersection of matching keys and shapes,
     # omitting 'exclude' keys, using da values
@@ -112,3 +122,7 @@ def augm1():
         key = cv2.waitKey(20000)
         if key == 27:
             break
+
+
+if __name__ == '__main__':
+    main()
