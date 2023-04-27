@@ -1,4 +1,5 @@
 import argparse
+from typing import Union
 
 import cv2
 import numpy as np
@@ -8,13 +9,17 @@ from backbones import get_model
 
 
 @torch.no_grad()
-def inference(weight: str, name: str, img: str) -> np.ndarray:
+def inference(
+    model: Union[str, torch.nn.Module],
+    name: str,
+    img: str
+) -> np.ndarray:
     """
     Load a model and an image and then return inference of the model
     on the image.
 
     Args:
-        weight (str): A path to the model checkpoint.
+        weight (str): The model or a path to the model checkpoint.
         name (str): A name of the model.
         img (str): A path to the test image.
 
@@ -31,11 +36,14 @@ def inference(weight: str, name: str, img: str) -> np.ndarray:
     img = np.transpose(img, (2, 0, 1))
     img = torch.from_numpy(img).unsqueeze(0).float()
     img.div_(255).sub_(0.5).div_(0.5)
-    net = get_model(name, fp16=False)
-    net.load_state_dict(torch.load(weight))
+    if isinstance(model, str):
+        net = get_model(name, fp16=False)
+        net.load_state_dict(torch.load(model))
+    else:
+        net = model
     net.eval()
     feat = net(img).numpy()
-    print(feat)
+    return feat
 
 
 if __name__ == "__main__":
