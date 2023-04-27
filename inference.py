@@ -8,7 +8,19 @@ from backbones import get_model
 
 
 @torch.no_grad()
-def inference(weight, name, img):
+def inference(weight: str, name: str, img: str) -> np.ndarray:
+    """
+    Load a model and an image and then return inference of the model
+    on the image.
+
+    Args:
+        weight (str): A path to the model checkpoint.
+        name (str): A name of the model.
+        img (str): A path to the test image.
+
+    Returns:
+        np.ndarray: An output of the model.
+    """    
     if img is None:
         img = np.random.randint(0, 255, size=(112, 112, 3), dtype=np.uint8)
     else:
