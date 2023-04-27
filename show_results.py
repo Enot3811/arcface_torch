@@ -86,9 +86,19 @@ def angular_sample_to_centroids(embeddings: np.ndarray, centroids: np.ndarray):
 def classify_samples(
     embeddings: np.ndarray, centroids: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
-    # Return predicted indexes for every sample (shape n_cls x n_samples)
-    # and accuracy per class (shape n_cls,)
-    # embeddings shape (n_classes, )
+    """
+    Return predicted indexes for an every sample and accuracy per class.
+
+    Args:
+        embeddings (np.ndarray): An embeddings tensor with shape
+        `[n_classes, embed_dim]`.
+        centroids (np.ndarray): A centroids tensor with shape
+        `[n_classes, embed_dim]`.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: The predicted indexes with shape
+        `[n_cls, n_samples]` and accuracy per class with shape `[n_cls,]`.
+    """
     n_classes, n_samples = embeddings.shape[:2]
 
     classes_distances = []
