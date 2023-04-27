@@ -1,5 +1,6 @@
 from pathlib import Path
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Union, Optional
+import random
 
 import torch
 import torchvision.transforms as transforms
@@ -7,8 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
-from inference import inference
-from tools import get_sliding_windows
+from model_tools import inference
+from image_tools import get_sliding_windows
 
 
 def intersect_dicts(da, db, exclude=()):
@@ -148,20 +149,18 @@ class RegionGetting:
             y_idx = torch.randint(0, self.y_windows, ())
 
             if available_regions[x_idx, y_idx]:
-                x_idx = self.x_indexer[x_idx]
-                y_idx = self.y_indexer[y_idx]
+                x_slice = self.x_indexer[x_idx]
+                y_slice = self.y_indexer[y_idx]
 
-                gotten_regions.append(img[:, x_idx][:, :, y_idx])
-                # TODO Вывести полученный кусочек. Убедиться, что всё ок
-                # И вообще продебажить всё, что снизу
-
-                _start_bl = max(0, x_idx)
-                _end_bl = min(_start_bl + self.region_margin, w)
+                gotten_regions.append(img[:, x_slice][:, :, y_slice])
+                _start_bl = max(0, x_idx - self.region_margin)
+                _end_bl = min(x_idx + self.region_margin + 1, w)
                 x_blocking = slice(_start_bl, _end_bl)
-                _start_bl = max(0, y_idx)
-                _end_bl = min(_start_bl + self.region_margin, h)
+                _start_bl = max(0, y_idx - self.region_margin)
+                _end_bl = min(y_idx + self.region_margin + 1, h)
                 y_blocking = slice(_start_bl, _end_bl)
-                available_regions[x_blocking, y_blocking] = False
+                available_regions[y_blocking, x_blocking] = False
+            print(x_idx * 112, y_idx * 112)
         return gotten_regions
 
 
@@ -190,17 +189,52 @@ class RegionsDataset(torch.utils.data.Dataset):
         return img
 
 
+def display_image(
+    img: Union[torch.Tensor, np.ndarray],
+    ax: Optional[plt.Axes] = None
+) -> plt.Axes:
+    """
+    Display an image on a matplotlib figure.
+    Parameters
+    ----------
+    img : Union[torch.Tensor, np.ndarray]
+        An image to display. If got torch.Tensor then convert it
+        to np.ndarray with axes permutation.
+    ax : Optional[plt.Axes], optional
+        Axes for image showing. If not given then a new Figure and Axes
+        will be created.
+    Returns
+    -------
+    plt.Axes
+        Axes with showed image.
+    """
+    if isinstance(img, torch.Tensor):
+        img = img.clone().detach().cpu().permute(1, 2, 0).numpy()
+    if ax is None:
+        _, ax = plt.subplots(figsize=(16, 8))
+    ax.imshow(img)
+    return ax
+
+
 def main():
     path = Path(__file__).parents[1] / 'data' / 'satellite_small' / 'train'
     dset = RegionsDataset(path)
-    img = next(iter(dset))
+    for _ in range(10):
+        img = dset[random.randint(0, len(dset))]
 
-    img_size = img.shape[1:]
-    reg_size = (112, 112)
+        img_size = img.shape[1:]
+        reg_size = (112, 112)
 
-    reg_get = RegionGetting(img_size, reg_size)
-    regions = reg_get(img)
+        reg_get = RegionGetting(img_size, reg_size)
+        regions = reg_get(img)
 
+        display_image(img)
+
+        fig, axs = plt.subplots(1, 2)
+        for i, region in enumerate(regions):
+            axs[i] = display_image(region, axs[i])
+
+        plt.show()
 
 if __name__ == '__main__':
     main()
