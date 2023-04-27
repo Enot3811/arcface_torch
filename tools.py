@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 from pathlib import Path
 
 import numpy as np
@@ -41,7 +41,7 @@ def get_sliding_windows(
     source_image: np.ndarray,
     h_win: int,
     w_win: int,
-    stride: int
+    stride: Optional[int] = None
 ) -> np.ndarray:
     """
     Cut a given image into windows with defined shapes and stride.
@@ -50,12 +50,16 @@ def get_sliding_windows(
         source_image (np.ndarray): The original image.
         h_win (int): Height of the windows.
         w_win (int): Width of the windows.
-        stride (int): The stride of the sliding windows.
+        stride (Optional[int]): The stride of the sliding windows.
+        If not defined it will be set by w_win value.
 
     Returns:
         np.ndarray: The cut image with shape `[num_windows, h_win, w_win, c]`.
     """    
     w, h, c = source_image.shape
+
+    if stride is None:
+        stride = w_win
 
     x_indexer = (
         np.expand_dims(np.arange(w_win), 0) +
