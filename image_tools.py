@@ -38,6 +38,41 @@ def read_image(path: Union[Path, str], grayscale: bool = False) -> np.ndarray:
     return img
 
 
+def get_scaled_shape(
+    orig_h: int, orig_w: int, orig_scale: float,
+    overlap_step: float, fov: float, net_size: Optional[int] = 112
+) -> Tuple[int, int, int, float]:
+    """
+    Масштабирование размеров изображения, исходя из размеров поля зрения
+    и входа сети.
+    Конвертация поля зрения и шага перекрывающего окна из метров в пиксели
+    при новом размере изображения.
+
+    Args:
+        orig_h (int): Исходная высота изображения в пикселях.
+        orig_w (int): Исходная ширина изображения в пикселях.
+        orig_scale (float): Исходный масштаб изображения (метров на пиксель).
+        overlap_step (float): перекрывающий шаг в метрах.
+        fov (float): Размер стороны поля зрения в метрах.
+        net_size (Optional[int], optional): Размер входа сети.
+
+    Returns:
+        Tuple[int, int, int, int]: Новый размеры изображения,
+        размер перекрывающего шага в пикселях и новый масштаб.
+    """    
+    fov_px = fov / orig_scale  # Поле зрения в пикселях
+    # Коэффициент масштабирования для привидения размеров участка
+    # к размеру входа сети
+    resize_coef = fov_px / net_size
+    # Новый масштаб
+    new_scale = orig_scale * resize_coef
+
+    # Отмасштабированный шаг перекрывающего окна в пикселях
+    scaled_overlap_px = int(overlap_step / new_scale)
+    # Новые размеры изображения
+    h = int(orig_h / resize_coef)
+    w = int(orig_w / resize_coef)
+    return h, w, scaled_overlap_px, new_scale
 def get_sliding_windows(
     source_image: np.ndarray,
     h_win: int,
