@@ -11,19 +11,21 @@ from image_tools import load_images
 
 
 def main(
-    dset_path: Path = Path(
-        __file__).parents[1] / 'data' / 'road_dataset_large_images_test',
+    dset_path: Path = Path(__file__).parents[1] / 'data' / 'cut_map',
     model_name: str = 'r50',
-    model_path: Path = Path(
-        __file__).parent / 'work_dirs' / 'r50_my_conf copy' / 'model.pt'
+    model_path: Path = (
+        Path(__file__).parent / 'work_dirs' / 'r50_my_conf' / 'model.pt')
 ):    
     """
-    Load a model and infer it over images in a defined dir.
+    Загрузить модель и прогнать её на всех картинках из датасета,
+    получив эмбединги. 
+    Все результаты сохраняются в np файл.
 
     Args:
-        dset_path (Path, optional): A path to the dataset of images.
-        model_name (str, optional): A name of the model.
-        model_path (Path, optional): A path to the model's weights.
+        dset_path (Path, optional): Путь до папки с датасетом.
+        model_name (str, optional): Название модели (r50).
+        Необходимо для её инициализации.
+        model_path (Path, optional): Путь до сохранённых весов модели.
     """    
     model = load_model(model_name, model_path)
 
@@ -41,6 +43,17 @@ def main(
 
 
 def infer_img(img: Path, model: torch.nn.Module) -> np.ndarray:
+    """
+    Загрузить картинку, сделать всю необходимую ей предобработку
+    и прогнать через модель.
+
+    Args:
+        img (Path): Путь до картинки.
+        model (torch.nn.Module): Загруженная модель.
+
+    Returns:
+        np.ndarray: Выход модели.
+    """    
     if img is None:
         img = np.random.randint(0, 255, size=(112, 112, 3), dtype=np.uint8)
     else:
