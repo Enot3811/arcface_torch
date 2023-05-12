@@ -1,9 +1,11 @@
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple
 from pathlib import Path
 
 import numpy as np
 import cv2
 import torch
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 
 def read_image(path: Union[Path, str], grayscale: bool = False) -> np.ndarray:
@@ -34,7 +36,7 @@ def read_image(path: Union[Path, str], grayscale: bool = False) -> np.ndarray:
     img = cv2.imread(str(path), flag)
     if img is None:
         raise ValueError('Image reading is not correct.')
-    img = cv2.cv2tColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     return img
 
 
@@ -68,11 +70,37 @@ def get_scaled_shape(
     new_scale = orig_scale * resize_coef
 
     # Отмасштабированный шаг перекрывающего окна в пикселях
-    scaled_overlap_px = int(overlap_step / new_scale)
+    scaled_overlap_px = int(overlap_step / new_scale)  # 16 пикселей для 30 метров
     # Новые размеры изображения
-    h = int(orig_h / resize_coef)
+    h = int(orig_h / resize_coef)  # 
     w = int(orig_w / resize_coef)
     return h, w, scaled_overlap_px, new_scale
+
+
+def resize_image(
+    image: np.ndarray,
+    new_size: Tuple[int, int],
+    interpolation: Optional[int] = cv2.INTER_LINEAR
+) -> np.ndarray:
+    """
+    Resize image to given size.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        Image to resize.
+    new_size : Tuple[int, int]
+        Tuple containing new image size.
+
+    Returns
+    -------
+    np.ndarray
+        Resized image
+    """
+    return cv2.resize(
+        image, new_size, None, None, None, interpolation=interpolation)
+
+
 def get_sliding_windows(
     source_image: np.ndarray,
     h_win: int,
@@ -131,3 +159,77 @@ def load_images(image_paths: List[Path]) -> torch.Tensor:
         img.div_(255).sub_(0.5).div_(0.5)
         images.append(img)
     return torch.cat(images)
+
+
+def rotate_img(img: np.ndarray, angle: float) -> np.ndarray:
+    """
+    Rotate an image by given angle in degrees.
+
+    Args:
+        img (np.ndarray): The image to rotate with shape `[h, w, c]`.
+        angle (float): The angle of rotating.
+
+    Returns:
+        np.ndarray: The rotated image with shape `[h, w, c]`.
+    """    
+    h, w, _ = img.shape
+
+    M = cv2.getRotationMatrix2D(((w - 1) / 2.0, (h - 1) / 2.0), angle, 1)
+    dst = cv2.warpAffine(img, M, (w, h), borderValue=(255, 255, 255))
+    return dst
+
+
+def process_raw_real_image(
+    image: np.ndarray,
+    angle: Optional[float] = 32.0,
+    white_space: Optional[float] = 0.15
+) -> np.ndarray:
+    """
+    Given real images are rotated by angle about 32 degrees, and have white
+    empty space around image.
+    Rotate the given image and cut white space.
+
+    Args:
+        image (np.ndarray): The image to process.
+        angle (Optional[float], optional): The angle of rotating.
+        white_space (Optional[float], optional): A percent of white space.
+
+    Returns:
+        np.ndarray: The processed image.
+    """
+    h, w, _ = image.shape
+    rotated_img = rotate_img(image, angle)
+    cut_img = rotated_img[int(h * white_space):h - int(h * white_space),
+                          int(w * white_space):w - int(w * white_space)]
+    return cut_img
+
+
+def show_grid(
+    arr: np.ndarray,
+    h: int,
+    w: int,
+    size: Tuple[float, float] = (20.0, 20.0)
+) -> Tuple[Figure, plt.Axes]:
+    """
+    Show a batch of images on a grid.
+
+    Args:
+        arr (np.ndarray): The batch of the images with shape `[b, h, w, c]`.
+        h (int): A number of images in one column of the grid.
+        w (int): A number of images in one string of the grid.
+        size (Tuple[float, float], optional): A size of plt figure.
+
+    Returns:
+        Tuple[Figure, plt.Axes]: The figure and axes with showed images.
+    """    
+    fig, axs = plt.subplots(h, w)
+    fig.set_size_inches(*size, forward=True)
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0, hspace=0)
+    for i in range(arr.shape[0]):
+        row = i // w
+        column = i % w
+        axs[row][column].get_yaxis().set_visible(False)
+        axs[row][column].get_xaxis().set_visible(False)
+        axs[row][column].imshow(arr[i])
+    return axs
