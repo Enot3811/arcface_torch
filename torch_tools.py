@@ -5,17 +5,21 @@ import numpy as np
 import cv2
 
 
-def get_augmentation():
-    return transforms.Compose([
-        transforms.ColorJitter(
-            brightness=(0.5, 1.3), contrast=(0.7, 1.2),
-            saturation=(0.7, 1.2), hue=0.1),
-        transforms.RandomApply(
-            transforms=[transforms.ElasticTransform(alpha=10.0)], p=0.1),
-        transforms.RandomPerspective(p=0.8),
-        transforms.RandomApply(
-            transforms=[transforms.RandomRotation((0, 180))], p=0.8)
-    ])
+def get_augmentation(color_jitter: bool, elastic: bool):
+    transf = []
+    if color_jitter:
+        transf.append(
+            transforms.ColorJitter(brightness=(0.5, 1.3), contrast=(0.7, 1.2),
+                                   saturation=(0.7, 1.2), hue=0.1))
+    if elastic:
+        transf.append(transforms.RandomApply(
+            transforms=[transforms.ElasticTransform(alpha=10.0)], p=0.1))
+    
+    transf.append(transforms.RandomPerspective(p=0.8))
+    transf.append(transforms.RandomApply(
+        transforms=[transforms.RandomRotation((0, 180))], p=0.8))
+            
+    return transforms.Compose(transf)
 
 
 def tensor_to_numpy(tensor: torch.Tensor) -> np.ndarray:
