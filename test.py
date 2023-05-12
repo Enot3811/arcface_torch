@@ -9,6 +9,12 @@ from show_results import normalize, classify_samples, angular_one2many
 
 
 def main():
+    """
+    Последнее, что было здесь, это тест последнего обучения на карте дорог
+    Data_612000_cls_6120
+    Здесь можно посмотреть точность модели и сделать предикт
+    какой-нибудь картинки.
+    """
     # Parameters
     model_path = (
         '/home/pc0/projects/arcface/arcface_torch/work_dirs/' +
