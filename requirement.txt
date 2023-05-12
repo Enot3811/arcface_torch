@@ -4,5 +4,4 @@ mxnet
 onnx
 scikit-learn
 opencv-python
-torch
-torchvision
+seaborn
