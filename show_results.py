@@ -5,8 +5,9 @@ from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import cv2
 
-from inference import inference
+from model_tools import inference
 
 
 def normalize(arr: np.ndarray) -> np.ndarray:
@@ -113,7 +114,7 @@ def classify_samples(
     classes_distances = np.array(classes_distances)
 
     nearest_idxs = np.argmin(classes_distances, axis=-1)
-    gt_idxs = np.tile(np.arange(n_classes)[:, None], (1, 20))
+    gt_idxs = np.tile(np.arange(n_classes)[:, None], (1, n_samples))
     accuracy_per_class = np.sum(nearest_idxs == gt_idxs, axis=-1) / n_samples
     return nearest_idxs, accuracy_per_class
     
@@ -180,12 +181,17 @@ def heatmap_on_map(map_path: Path = None, heatmap_path: Path = None):
 
 
 def main():
+    # Здесь в последний раз была ещё самая первая попытка,
+    # когда порезали 9 на 14 без перекрытий
+    # При этом тут хорошие функции для подсчёта всех метрик.
+
+    # Configure these
     n_rows = 9
     n_columns = 14
 
     # Get results embeddings
-    embeddings_path = Path(
-        __file__).parents[1] / 'data' / 'road_dataset_small' / 'results.npy'
+    embeddings_path = (Path(__file__).parents[1] / 'data' /
+                       'road_dataset_small_images' / 'results.npy')
     embeddings: np.ndarray = np.load(embeddings_path)  # n_cls x n_samp x embed
 
     norm_embed = normalize(embeddings)
@@ -201,15 +207,13 @@ def main():
 
     fig, axs = plt.subplots(1, 1)
     axs.plot(mean_angles)
-    # plt.show()
 
     angular_sample_to_centroids(norm_embed, embed_centroids)
-
 
     # реальная картинка
     checkpoint_path = 'checkpoints/backbone.pth'
     model_name = 'r50'
-    images = ['../data/test_sattelite_112x112.png']
+    images = ['../data/test_satellite_112x112.png']
 
     n_classes = embeddings.shape[0]
     results = [inference(checkpoint_path, model_name, img) for img in images]
@@ -236,6 +240,8 @@ def main():
     sns.heatmap(accuracy_per_class, annot=True, ax=ax, annot_kws={'size': 25})
     # plt.savefig('heatmap.jpg')
     plt.show()
+
+    # heatmap_on_map()
     
 
 
