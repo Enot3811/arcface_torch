@@ -7,7 +7,7 @@ from easydict import EasyDict as edict
 config = edict()
 config.margin_list = (1.0, 0.5, 0.0)
 config.network = "r50"
-config.resume = False
+config.resume = True
 config.output = None
 config.embedding_size = 512
 config.sample_rate = 1.0
@@ -21,8 +21,8 @@ config.dali = False
 
 # config.rec = "/train_tmp/faces_emore"
 config.rec = "/home/pc0/projects/arcface/data/Data_612000_cls_6120"
-config.num_classes = 6120#85742 
-config.num_image = 612000 #5822653
+config.num_classes = 6120
+config.num_image = 612000
 config.num_epoch = 20
 config.warmup_epoch = 0
 config.val_targets = ['lfw', 'cfp_fp', "agedb_30"]
