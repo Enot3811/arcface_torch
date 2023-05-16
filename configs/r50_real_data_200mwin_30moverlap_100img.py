@@ -19,7 +19,8 @@ config.lr = 0.05
 config.verbose = 2000
 config.dali = False
 
-config.rec = "/home/pc0/projects/arcface/data/real_images_dataset"
+config.rec = ('/home/pc0/projects/arcface/data/real_images_dataset/' +
+              '200m_30m_100img')
 config.num_classes = 59290
 config.num_image = 5929000
 config.num_epoch = 20
