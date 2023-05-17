@@ -145,7 +145,7 @@ def parse_args() -> argparse.Namespace:
     Отпарсить передаваемые аргументы.
 
     Returns:
-        argparse.ArgumentParser: Полученные аргументы.
+        argparse.Namespace: Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
         description=('Создание датасета из снимка ортофотоплана.'
