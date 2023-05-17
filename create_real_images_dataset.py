@@ -87,7 +87,7 @@ def main():
                     path = new_dataset_path / f's{k}' / f'{i}.jpg'
                     
                     cv2.imwrite(str(path), cv2.cvtColor(
-                        augmented_windows[j % b_size], cv2.COLOR_RGB2BGR))
+                        augmented_windows[k % b_size], cv2.COLOR_RGB2BGR))
 
 
 if __name__ == '__main__':
