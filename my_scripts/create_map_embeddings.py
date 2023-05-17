@@ -67,12 +67,12 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
 
     if not args.cut_windows_path.exists():
-        raise(FileNotFoundError(
+        raise FileNotFoundError(
             'Указанная директория с нарезанными окнами '
-            f'"{args.cut_windows_path}" не существует.'))
+            f'"{args.cut_windows_path}" не существует.')
     if not args.model_path.exists():
-        raise(FileNotFoundError(
-            f'Файл с весами модели "{args.model_path}" не существует.'))
+        raise FileNotFoundError(
+            f'Файл с весами модели "{args.model_path}" не существует.')
     return args
 
 
