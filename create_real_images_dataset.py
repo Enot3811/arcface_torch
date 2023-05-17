@@ -62,12 +62,20 @@ def main(**kwargs):
             show_grid(augmented_windows, n_h_win, n_w_win)
             plt.show()
 
+    if save_dset:
+        dataset_images_path = dataset_path / 'images'
+        cut_image_path = dataset_path / 'cut_image'
+        cut_image_path.mkdir(parents=True, exist_ok=True)
 
-    # Создаём директории под классы
-    if save:
-        for i in range(windows.shape[0]):
-            dir_path = new_dataset_path / f's{i}'
+        desc = 'Сохранение нарезанных окон'
+        for i in tqdm(range(windows.shape[0]), desc=desc):
+            # Создаём директории под классы
+            dir_path = dataset_images_path / f's{i}'
             dir_path.mkdir(parents=True, exist_ok=True)
+
+            # Сохраняем порезанные окна без аугментаций
+            cv2.imwrite(str(cut_image_path / f's{i}.jpg'), cv2.cvtColor(
+                        windows[i], cv2.COLOR_RGB2BGR))
 
         # Делаем случайные аугментации и сохраняем их
         b_size = 1225
