@@ -6,6 +6,7 @@ import numpy as np
 import torch
 
 from backbones import get_model
+from torch_tools import numpy_to_tensor
 
 
 def load_model(model_name: str, checkpoint_path: Path) -> torch.nn.Module:
@@ -23,6 +24,38 @@ def load_model(model_name: str, checkpoint_path: Path) -> torch.nn.Module:
     net.load_state_dict(torch.load(checkpoint_path))
     net.eval()
     return net
+
+
+def preprocess_model_input(
+    input_data: Union[np.ndarray, torch.Tensor]
+) -> torch.Tensor:
+    """
+    Предобработать данные перед отправкой в arcface модель.
+
+    Args:
+        input_data (Union[np.ndarray, torch.Tensor]): Входящие данные размерами
+        `[b, h, w, c]` или `[h, w, c]` для батча и одного изображения
+        соответственно при типе ndarray
+        и `[b, c, h, w]` или `[c, h, w]` для батча и одного изображения
+        соответственно при типе Tensor.
+
+    Raises:
+        ValueError: Переданные данные должны иметь 3 или 4 измерения.
+
+    Returns:
+        torch.Tensor: Тензор со входными даннами, готовый к отправке в сеть.
+    """
+    if len(input_data.shape) not in {3, 4}:
+        raise ValueError('Переданные данные должны иметь 3 или 4 измерения, '
+                         f'однако сейчас их размерность: {input_data.shape}.')
+
+    if len(input_data.shape) == 3:
+        input_data = input_data[None, ...]
+
+    if isinstance(input_data, np.ndarray):
+        input_data = numpy_to_tensor(input_data)
+
+    return input_data.div_(255).sub_(0.5).div_(0.5)
 
 
 @torch.no_grad()
