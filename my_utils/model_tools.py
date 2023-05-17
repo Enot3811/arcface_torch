@@ -5,8 +5,10 @@ import cv2
 import numpy as np
 import torch
 
+import sys
+sys.path.append(str(Path(__file__).parents[1]))
 from backbones import get_model
-from torch_tools import numpy_to_tensor
+from my_utils.torch_tools import numpy_to_tensor
 
 
 def load_model(model_name: str, checkpoint_path: Path) -> torch.nn.Module:
@@ -55,7 +57,7 @@ def preprocess_model_input(
     if isinstance(input_data, np.ndarray):
         input_data = numpy_to_tensor(input_data)
 
-    return input_data.div_(255).sub_(0.5).div_(0.5)
+    return input_data.float().div_(255).sub_(0.5).div_(0.5)
 
 
 @torch.no_grad()
