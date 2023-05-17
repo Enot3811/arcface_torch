@@ -78,15 +78,19 @@ def main(**kwargs):
                         windows[i], cv2.COLOR_RGB2BGR))
 
         # Делаем случайные аугментации и сохраняем их
-        b_size = 1225
-        for i in tqdm(range(num_samples)):
+        windows = numpy_to_tensor(windows)
+        # TODO сделать аугментацию и сохранение батчами.
+        # Проверить эффективность
+        b_size = windows.size(0)
+        desc = 'Создание и сохранение аугментированных семплов датасета'
+        for i in tqdm(range(num_samples), desc=desc):
             for j in range(0, windows.shape[0], b_size):
 
                 augmented_windows = augmentations(windows[j:j + b_size])
                 augmented_windows = tensor_to_numpy(augmented_windows)
 
                 for k in range(j, j + b_size):
-                    path = new_dataset_path / f's{k}' / f'{i}.jpg'
+                    path = dataset_images_path / f's{k}' / f'{i}.jpg'
                     
                     cv2.imwrite(str(path), cv2.cvtColor(
                         augmented_windows[k % b_size], cv2.COLOR_RGB2BGR))
