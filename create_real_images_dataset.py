@@ -90,5 +90,65 @@ def main():
                         augmented_windows[k % b_size], cv2.COLOR_RGB2BGR))
 
 
+
+def parse_args() -> argparse.Namespace:
+    """
+    Отпарсить передаваемые аргументы.
+
+    Returns:
+        argparse.ArgumentParser: Полученные аргументы.
+    """
+    parser = argparse.ArgumentParser(
+        description=('Создание датасета из снимка ортофотоплана.'
+                     'Подробное описание в файле скрипта.'))
+
+    parser.add_argument(
+        'source_img_path', type=Path,
+        help='Путь к снимку для нарезки.')
+    parser.add_argument(
+        'fov', type=int,
+        help='Размер стороны нарезаемого окна в метрах.')
+    parser.add_argument(
+        'scale', type=float,
+        help='Масштаб передаваемого снимка в метрах на пиксель.')
+    parser.add_argument(
+        '--overlap', type=int, default=0,
+        help='Размер шага окна или перекрытие в метрах.')
+    parser.add_argument(
+        '--show_grid', action='store_true',
+        help='Отобразить порезанный снимок.')
+    parser.add_argument(
+        '--save_dataset', action='store_true',
+        help='Сохранить датасет.')
+    parser.add_argument(
+        '--raw_source', action='store_true',
+        help=('Провести предварительную предобработку переданного изображения '
+              '(повернуть и обрезать белые края).'))
+    parser.add_argument(
+        '--num_samples', type=int, default=100,
+        help='Количество производимых семплов на класс.')
+    parser.add_argument(
+        '--net_input', type=int, default=112,
+        help='Размер входа сети, к которому будут приводиться нарезаемые окна.'
+    )
+    parser.add_argument(
+        '--save_dir', type=Path, default=None,
+        help=('Директория для сохранения датасета. '
+              'Если не указана, то указывается директория в '
+              '"project_dir/../data/real_images_dataset/" с названием, '
+              'созданным из переданных аргументов.'))
+    args = parser.parse_args()
+
+    # Если шаг 0, то прировнять его к fov. То есть нарезка без перекрытия.
+    if args.overlap == 0:
+        args.overlap = args.fov
+    # Если необходимо, сгенерировать название для папки датасета
+    if args.save_dir is None and args.save_dataset:
+        args.save_dir = (
+            Path(__file__).parents[1] / 'data' / 'real_images_dataset' /
+            (f'win{args.fov}m_overlap{args.overlap}m_'
+             f'samples{args.num_samples}_input{args.net_input}px'))
+    return args
+
 if __name__ == '__main__':
     main()
