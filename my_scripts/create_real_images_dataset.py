@@ -46,10 +46,12 @@ import cv2
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from image_tools import (
+import sys
+sys.path.append(str(Path(__file__).parents[1]))
+from my_utils.image_tools import (
     read_image, resize_image, process_raw_real_image,
     get_sliding_windows, get_scaled_shape, show_grid)
-from torch_tools import get_augmentation, tensor_to_numpy, numpy_to_tensor
+from my_utils.torch_tools import get_augmentation, tensor_to_numpy, numpy_to_tensor
 
 
 def main(**kwargs):
@@ -192,7 +194,7 @@ def parse_args() -> argparse.Namespace:
     # Если необходимо, сгенерировать название для папки датасета
     if args.save_dir is None and args.save_dataset:
         args.save_dir = (
-            Path(__file__).parents[1] / 'data' / 'real_images_dataset' /
+            Path(__file__).parents[2] / 'data' / 'real_images_dataset' /
             (f'win{args.fov}m_overlap{args.overlap}m_'
              f'samples{args.num_samples}_input{args.net_input}px'))
     return args
