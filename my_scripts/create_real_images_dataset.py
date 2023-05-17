@@ -50,7 +50,7 @@ import sys
 sys.path.append(str(Path(__file__).parents[1]))
 from my_utils.image_tools import (
     read_image, resize_image, process_raw_real_image,
-    get_sliding_windows, get_scaled_shape, show_grid)
+    get_sliding_windows, get_scaled_shape, show_grid, save_image)
 from my_utils.torch_tools import get_augmentation, tensor_to_numpy, numpy_to_tensor
 
 
@@ -117,8 +117,7 @@ def main(**kwargs):
             dir_path.mkdir(parents=True, exist_ok=True)
 
             # Сохраняем порезанные окна без аугментаций
-            cv2.imwrite(str(cut_image_path / f's{i}.jpg'), cv2.cvtColor(
-                        windows[i], cv2.COLOR_RGB2BGR))
+            save_res = save_image(windows[i], cut_image_path / f's{i}.jpg')
 
         # Делаем случайные аугментации и сохраняем их
         windows = numpy_to_tensor(windows)
@@ -135,9 +134,7 @@ def main(**kwargs):
                 for k in range(j, j + b_size):
                     path = dataset_images_path / f's{k}' / f'{i}.jpg'
                     
-                    cv2.imwrite(str(path), cv2.cvtColor(
-                        augmented_windows[k % b_size], cv2.COLOR_RGB2BGR))
-
+                    save_res = save_image(augmented_windows[k % b_size], path)
 
 
 def parse_args() -> argparse.Namespace:

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 import sys
 sys.path.append(str(Path(__file__).parents[1]))
-from my_utils.image_tools import read_image, process_raw_real_image
+from my_utils.image_tools import read_image, process_raw_real_image, save_image
 
 
 def main(**kwargs):
@@ -30,7 +30,7 @@ def main(**kwargs):
         plt.show()
 
     save_path.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(save_path), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    save_image(img, save_path)
     
 
 def parse_args() -> argparse.Namespace:
