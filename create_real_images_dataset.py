@@ -1,4 +1,5 @@
 from pathlib import Path
+import argparse
 
 import cv2
 import matplotlib.pyplot as plt
@@ -10,28 +11,22 @@ from image_tools import (
 from torch_tools import get_augmentation, tensor_to_numpy, numpy_to_tensor
 
 
-def main():
-    """
-    Здесь создаётся датасет из предоставленных реальных снимков местности.
-    Был выбран 75 снимок для нарезания.
-    """
-    show = False
-    save = True
-    img_path = (Path(__file__).parents[1] /
-                'data' / 'real_data_raw' / 'B075.jpg')
-    img = read_image(img_path)
-    img = process_raw_real_image(img)  # Крутим и отрезаем белые края
+def main(**kwargs):
+    img_path = kwargs['source_img_path']
+    fov = kwargs['fov']
+    orig_scale = kwargs['scale']
+    overlap = kwargs['overlap']
+    show_cut = kwargs['show_grid']
+    save_dset = kwargs['save_dataset']
+    num_samples = kwargs['num_samples']
+    net_input_size = kwargs['net_input']
+    dataset_path = kwargs['save_dir']
+    raw = kwargs['raw_source']
 
-    num_samples = 500  # Количество производимых семплов на класс
+    img = read_image(img_path)
+    if raw:
+        img = process_raw_real_image(img)  # Крутим и отрезаем белые края
     h_orig, w_orig = img.shape[:2]
-    orig_scale = 0.5  # Метров в пикселе
-    net_input_size = 112
-    fov = 1000  # Сторона квадрата поля зрения в метрах
-    overlap = 1000  # Шаг перекрывающего окна в метрах
-    # Директория для сохранения изображений датасета
-    new_dataset_path = (
-        Path(__file__).parents[1] / 'data' / 'real_images_dataset' /
-        f'{fov}m_{overlap}m_{num_samples}img' / 'images')
 
     print('Исходное изображение:', f'Размеры: {h_orig}, {w_orig}',
           f'Масштаб: {orig_scale} м/px', f'Поле зрения: {fov} м',
@@ -53,16 +48,15 @@ def main():
     print('Порезанные окна:', windows.shape)
 
     augmentations = get_augmentation(color_jitter=True, elastic=True)
-    windows = numpy_to_tensor(windows)
 
     # Отобразить порезанные окна
     # Чтобы корректно работало, необходимо резать без перекрытия
-    if show:
+    if show_cut:
         plt.imshow(img)
 
         n_h_win = h // new_fov
         n_w_win = w // new_fov
-        for _ in range(6):
+        for _ in range(3):
             augmented_windows = augmentations(windows)
             augmented_windows = tensor_to_numpy(augmented_windows)
             show_grid(augmented_windows, n_h_win, n_w_win)
@@ -150,5 +144,7 @@ def parse_args() -> argparse.Namespace:
              f'samples{args.num_samples}_input{args.net_input}px'))
     return args
 
+
 if __name__ == '__main__':
-    main()
+    args = parse_args()
+    main(**vars(args))
