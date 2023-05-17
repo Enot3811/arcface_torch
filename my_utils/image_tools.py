@@ -171,7 +171,8 @@ def rotate_img(img: np.ndarray, angle: float) -> np.ndarray:
 
     Returns:
         np.ndarray: The rotated image with shape `[h, w, c]`.
-    """    
+    """
+    img = img.copy()
     h, w, _ = img.shape
 
     M = cv2.getRotationMatrix2D(((w - 1) / 2.0, (h - 1) / 2.0), angle, 1)
@@ -197,6 +198,7 @@ def process_raw_real_image(
     Returns:
         np.ndarray: The processed image.
     """
+    image = image.copy()
     h, w, _ = image.shape
     rotated_img = rotate_img(image, angle)
     cut_img = rotated_img[int(h * white_space):h - int(h * white_space),
