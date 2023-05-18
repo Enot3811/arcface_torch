@@ -15,15 +15,15 @@ config.fp16 = True
 config.momentum = 0.9
 config.weight_decay = 5e-4
 config.batch_size = 32
-config.lr = 0.001
+config.lr = 0.005
 config.verbose = 2000
 config.dali = False
 
-config.rec = ('/home/pc0/projects/arcface/data/real_images_dataset/' +
-              '1000m_1000m_500samples_224input')
+config.rec = ('/home/pc0/projects/arcface/data/real_images_dataset/'
+              'win1000m_overlap1000m_samples500_input224px')
 config.num_classes = 49
 config.num_image = 49 * 500
-config.num_epoch = 20
+config.num_epoch = 5
 config.warmup_epoch = 0
 config.val_targets = ['lfw', 'cfp_fp', "agedb_30"]
 config.save_all_states = True
