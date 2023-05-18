@@ -98,7 +98,7 @@ def main(**kwargs):
         n_h_win = h // new_fov
         n_w_win = w // new_fov
         for _ in range(3):
-            augmented_windows = augmentations(windows)
+            augmented_windows = augmentations(numpy_to_tensor(windows))
             augmented_windows = tensor_to_numpy(augmented_windows)
             show_grid(augmented_windows, n_h_win, n_w_win)
             plt.show()
@@ -131,8 +131,7 @@ def main(**kwargs):
 
                 for k in range(j, j + b_size):
                     path = dataset_images_path / f's{k}' / f'{i}.jpg'
-                    
-                    save_res = save_image(augmented_windows[k % b_size], path)
+                    save_image(augmented_windows[k % b_size], path)
 
 
 def parse_args() -> argparse.Namespace:
