@@ -1,5 +1,4 @@
-"""
-Скрипт для создания датасета из снимка ортофотоплана.
+"""Скрипт для создания датасета из снимка ортофотоплана.
 
 Снимок при необходимости предобрабатывается (поворот и обрезка белых краёв),
 затем на основе переданных размеров окна, перекрытия, масштаба и
@@ -42,7 +41,6 @@
 from pathlib import Path
 import argparse
 
-import cv2
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
@@ -138,11 +136,12 @@ def main(**kwargs):
 
 
 def parse_args() -> argparse.Namespace:
-    """
-    Отпарсить передаваемые аргументы.
+    """Отпарсить передаваемые аргументы.
 
-    Returns:
-        argparse.Namespace: Полученные аргументы.
+    Returns
+    -------
+    argparse.Namespace
+        Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
         description=('Создание датасета из снимка ортофотоплана.'

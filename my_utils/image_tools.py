@@ -9,24 +9,26 @@ import matplotlib.pyplot as plt
 
 
 def read_image(path: Union[Path, str], grayscale: bool = False) -> np.ndarray:
-    """
-    Read image to numpy array.
+    """Read image to numpy array.
+
     Parameters
     ----------
     path : Union[Path, str]
         Path to image file
     grayscale : bool, optional
-        Whether read image in grayscale, by default False
-    Returns
-    -------
-    np.ndarray
-        Array containing read image.
+        Whether read image in grayscale, by default False.
+
     Raises
     ------
     FileNotFoundError
         Did not find image.
     ValueError
         Image reading is not correct.
+
+    Returns
+    -------
+    np.ndarray
+        Array containing read image.
     """
     if isinstance(path, str):
         path = Path(path)
@@ -40,16 +42,15 @@ def read_image(path: Union[Path, str], grayscale: bool = False) -> np.ndarray:
     return img
 
 
-def save_image(img: np.ndarray, path: Path) -> bool:
-    """
-    Сохранить переданное изображение по указанному пути.
+def save_image(img: np.ndarray, path: Path) -> None:
+    """Сохранить переданное изображение по указанному пути.
 
-    Args:
-        img (np.ndarray): Сохраняемое изображение.
-        path (Path): Путь для сохранения изображения.
-
-    Returns:
-        bool: Удалось ли сохранить изображение.
+    Parameters
+    ----------
+    img : np.ndarray
+        Сохраняемое изображение.
+    path : Path
+        Путь для сохранения изображения.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     success = cv2.imwrite(str(path), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
@@ -59,7 +60,7 @@ def save_image(img: np.ndarray, path: Path) -> bool:
 
 def get_scaled_shape(
     orig_h: int, orig_w: int, orig_scale: float,
-    overlap_step: float, fov: float, net_size: Optional[int] = 112
+    overlap_step: float, fov: float, net_size: int = 112
 ) -> Tuple[int, int, int, float]:
     """
     Масштабирование размеров изображения, исходя из размеров поля зрения
@@ -67,18 +68,27 @@ def get_scaled_shape(
     Конвертация поля зрения и шага перекрывающего окна из метров в пиксели
     при новом размере изображения.
 
-    Args:
-        orig_h (int): Исходная высота изображения в пикселях.
-        orig_w (int): Исходная ширина изображения в пикселях.
-        orig_scale (float): Исходный масштаб изображения (метров на пиксель).
-        overlap_step (float): перекрывающий шаг в метрах.
-        fov (float): Размер стороны поля зрения в метрах.
-        net_size (Optional[int], optional): Размер входа сети.
+    Parameters
+    ----------
+    orig_h : int
+        Исходная высота изображения в пикселях.
+    orig_w : int
+        Исходная ширина изображения в пикселях.
+    orig_scale : float
+        Исходный масштаб изображения (метров на пиксель).
+    overlap_step : float
+        перекрывающий шаг в метрах.
+    fov : float
+        Размер стороны поля зрения в метрах.
+    net_size : int, optional
+        Размер входа сети. По умолчанию равен 112.
 
-    Returns:
-        Tuple[int, int, int, int]: Новый размеры изображения,
-        размер перекрывающего шага в пикселях и новый масштаб.
-    """    
+    Returns
+    -------
+    Tuple[int, int, int, int]
+        Новый размеры изображения, размер перекрывающего шага в пикселях
+        и новый масштаб.
+    """
     fov_px = fov / orig_scale  # Поле зрения в пикселях
     # Коэффициент масштабирования для привидения размеров участка
     # к размеру входа сети
@@ -97,22 +107,23 @@ def get_scaled_shape(
 def resize_image(
     image: np.ndarray,
     new_size: Tuple[int, int],
-    interpolation: Optional[int] = cv2.INTER_LINEAR
+    interpolation: int = cv2.INTER_LINEAR
 ) -> np.ndarray:
-    """
-    Resize image to given size.
+    """Resize an image to a given size.
 
     Parameters
     ----------
     image : np.ndarray
-        Image to resize.
+        The image to resize.
     new_size : Tuple[int, int]
-        Tuple containing new image size.
+        A Tuple containing the new image size.
+    interpolation : int, optional
+        An interpolation type, by default cv2.INTER_LINEAR.
 
     Returns
     -------
     np.ndarray
-        Resized image
+        The resized image.
     """
     return cv2.resize(
         image, new_size, None, None, None, interpolation=interpolation)
@@ -122,21 +133,27 @@ def get_sliding_windows(
     source_image: np.ndarray,
     h_win: int,
     w_win: int,
-    stride: Optional[int] = None
+    stride: int = None
 ) -> np.ndarray:
+    """Cut a given image into windows with defined shapes and stride.
+
+    Parameters
+    ----------
+    source_image : np.ndarray
+        The original image.
+    h_win : int
+        Height of the windows.
+    w_win : int
+        Width of the windows.
+    stride : int, optional
+        The stride of the sliding windows.
+        If not defined it will be set by `w_win` value.
+
+    Returns
+    -------
+    np.ndarray
+        The cut image with shape `[num_windows, h_win, w_win, c]`.
     """
-    Cut a given image into windows with defined shapes and stride.
-
-    Args:
-        source_image (np.ndarray): The original image.
-        h_win (int): Height of the windows.
-        w_win (int): Width of the windows.
-        stride (Optional[int]): The stride of the sliding windows.
-        If not defined it will be set by w_win value.
-
-    Returns:
-        np.ndarray: The cut image with shape `[num_windows, h_win, w_win, c]`.
-    """    
     w, h, c = source_image.shape
 
     if stride is None:
@@ -155,39 +172,20 @@ def get_sliding_windows(
     return windows
 
 
-def load_images(image_paths: List[Path]) -> torch.Tensor:
-    """
-    Load and prepare images to pass into a network.
-
-    Args:
-        image_paths (List[Path]): Paths to the needed images.
-
-    Returns:
-        torch.Tensor: Loaded and processed images with shape
-        `[num_images, c, h, w].`
-    """    
-    images = []
-    for img in image_paths:
-        img = cv2.imread(str(img))
-        img = cv2.resize(img, (112, 112))
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = np.transpose(img, (2, 0, 1))
-        img = torch.from_numpy(img).unsqueeze(0).float()
-        img.div_(255).sub_(0.5).div_(0.5)
-        images.append(img)
-    return torch.cat(images)
-
-
 def rotate_img(img: np.ndarray, angle: float) -> np.ndarray:
-    """
-    Rotate an image by given angle in degrees.
+    """Rotate an image by given angle in degrees.
 
-    Args:
-        img (np.ndarray): The image to rotate with shape `[h, w, c]`.
-        angle (float): The angle of rotating.
+    Parameters
+    ----------
+    img : np.ndarray
+        The image to rotate with shape `[h, w, c]`.
+    angle : float
+        The angle of rotating.
 
-    Returns:
-        np.ndarray: The rotated image with shape `[h, w, c]`.
+    Returns
+    -------
+    np.ndarray
+        The rotated image with shape `[h, w, c]`.
     """
     img = img.copy()
     h, w, _ = img.shape
@@ -199,20 +197,24 @@ def rotate_img(img: np.ndarray, angle: float) -> np.ndarray:
 
 def process_raw_real_image(
     image: np.ndarray,
-    angle: Optional[float] = 32.0,
-    white_space: Optional[float] = 0.15
+    angle: float = 32.0,
+    white_space: float = 0.15
 ) -> np.ndarray:
-    """
+    """Rotate the given image and cut white space.
+
     Given real images are rotated by angle about 32 degrees, and have white
-    empty space around image.
-    Rotate the given image and cut white space.
+    empty space around image. This function can process the given image to a
+    normal view.
 
-    Args:
-        image (np.ndarray): The image to process.
-        angle (Optional[float], optional): The angle of rotating.
-        white_space (Optional[float], optional): A percent of white space.
+    Parameters
+    ----------
+    image : np.ndarray): The image to process.
+    angle : float, optional
+        The angle of rotating.
+    white_space (Optional[float], optional): A percent of white space.
 
-    Returns:
+    Returns
+    -------
         np.ndarray: The processed image.
     """
     image = image.copy()
@@ -229,18 +231,24 @@ def show_grid(
     w: int,
     size: Tuple[float, float] = (20.0, 20.0)
 ) -> Tuple[Figure, plt.Axes]:
+    """Show a batch of images on a grid.
+
+    Parameters
+    ----------
+    arr : np.ndarray
+        The batch of the images with shape `[b, h, w, c]`.
+    h : int
+        A number of images in one column of the grid.
+    w : int
+        A number of images in one string of the grid.
+    size : Tuple[float, float], optional
+        A size of plt figure.
+
+    Returns
+    -------
+    Tuple[Figure, plt.Axes]
+        The figure and axes with showed images.
     """
-    Show a batch of images on a grid.
-
-    Args:
-        arr (np.ndarray): The batch of the images with shape `[b, h, w, c]`.
-        h (int): A number of images in one column of the grid.
-        w (int): A number of images in one string of the grid.
-        size (Tuple[float, float], optional): A size of plt figure.
-
-    Returns:
-        Tuple[Figure, plt.Axes]: The figure and axes with showed images.
-    """    
     fig, axs = plt.subplots(h, w)
     fig.set_size_inches(*size, forward=True)
     plt.tight_layout()

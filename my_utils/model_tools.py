@@ -12,16 +12,20 @@ from my_utils.torch_tools import numpy_to_tensor
 
 
 def load_model(model_name: str, checkpoint_path: Path) -> torch.nn.Module:
+    """Load a model from a checkpoint for an inference.
+
+    Parameters
+    ----------
+    model_name : str
+        A name of the model.
+    checkpoint_path : Path
+        A path to the checkpoint.
+
+    Returns
+    -------
+    torch.nn.Module
+        The loaded model.
     """
-    Load a model from a checkpoint for an inference.
-
-    Args:
-        model_name (str): A name of the model.
-        checkpoint_path (Path): A path to the checkpoint.
-
-    Returns:
-        torch.nn.Module: The loaded model.
-    """    
     net = get_model(model_name, fp16=False)
     net.load_state_dict(torch.load(checkpoint_path))
     net.eval()
@@ -31,21 +35,25 @@ def load_model(model_name: str, checkpoint_path: Path) -> torch.nn.Module:
 def preprocess_model_input(
     input_data: Union[np.ndarray, torch.Tensor]
 ) -> torch.Tensor:
-    """
-    Предобработать данные перед отправкой в arcface модель.
+    """Предобработать данные перед отправкой в arcface модель.
 
-    Args:
-        input_data (Union[np.ndarray, torch.Tensor]): Входящие данные размерами
-        `[b, h, w, c]` или `[h, w, c]` для батча и одного изображения
-        соответственно при типе ndarray
-        и `[b, c, h, w]` или `[c, h, w]` для батча и одного изображения
-        соответственно при типе Tensor.
+    Parameters
+    ----------
+    input_data : Union[np.ndarray, torch.Tensor]
+        Входящие данные размерами `[b, h, w, c]` или `[h, w, c]` для батча и
+        одного изображения соответственно при типе ndarray и `[b, c, h, w]` или
+        `[c, h, w]` для батча и одного изображения соответственно при
+        типе Tensor.
 
-    Raises:
-        ValueError: Переданные данные должны иметь 3 или 4 измерения.
+    Raises
+    ------
+    ValueError
+        Переданные данные должны иметь 3 или 4 измерения.
 
-    Returns:
-        torch.Tensor: Тензор со входными даннами, готовый к отправке в сеть.
+    Returns
+    -------
+    torch.Tensor
+        Тензор со входными даннами, готовый к отправке в сеть.
     """
     if len(input_data.shape) not in {3, 4}:
         raise ValueError('Переданные данные должны иметь 3 или 4 измерения, '
@@ -70,14 +78,20 @@ def inference(
     Load a model and an image and then return inference of the model
     on the image.
 
-    Args:
-        weight (str): The model or a path to the model checkpoint.
-        name (str): A name of the model.
-        img (str): A path to the test image.
+    Parameters
+    ----------
+    weight : str
+        The model or a path to the model checkpoint.
+    name : str
+        A name of the model.
+    img : str
+        A path to the test image.
 
-    Returns:
-        np.ndarray: An output of the model.
-    """    
+    Returns
+    -------
+    np.ndarray
+        An output of the model.
+    """
     if img is None:
         img = np.random.randint(0, 255, size=(112, 112, 3), dtype=np.uint8)
     else:

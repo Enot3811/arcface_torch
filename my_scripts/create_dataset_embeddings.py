@@ -1,5 +1,4 @@
-"""
-Скрипт для создания embeddings на основе указанного датасета.
+"""Скрипт для создания embeddings на основе указанного датасета.
 """
 
 
@@ -67,8 +66,10 @@ def parse_args() -> argparse.Namespace:
     """
     Отпарсить передаваемые аргументы.
 
-    Returns:
-        argparse.Namespace: Полученные аргументы.
+    Returns
+    -------
+    argparse.Namespace
+        Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
         description=('Создать embeddings из датасета.'))

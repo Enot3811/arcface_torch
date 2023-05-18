@@ -1,5 +1,4 @@
-"""
-Скрипт для создания embeddings на основе нарезанных окон.
+"""Скрипт для создания embeddings на основе нарезанных окон.
 """
 
 
@@ -43,11 +42,12 @@ def main(**kwargs):
 
 
 def parse_args() -> argparse.Namespace:
-    """
-    Отпарсить передаваемые аргументы.
+    """Отпарсить передаваемые аргументы.
 
-    Returns:
-        argparse.Namespace: Полученные аргументы.
+    Returns
+    -------
+    argparse.Namespace
+        Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
         description=('Создать embeddings из нарезанных окон.'))
