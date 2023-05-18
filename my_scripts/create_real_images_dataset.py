@@ -193,6 +193,11 @@ def parse_args() -> argparse.Namespace:
             Path(__file__).parents[2] / 'data' / 'real_images_dataset' /
             (f'win{args.fov}m_overlap{args.overlap}m_'
              f'samples{args.num_samples}_input{args.net_input}px'))
+
+    if not args.source_img_path.exists():
+        raise FileNotFoundError(
+            'Указанное изображение для нарезки '
+            f'"{args.source_img_path}" не существует.')
     return args
 
 
