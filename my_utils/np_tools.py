@@ -40,7 +40,7 @@ def angular_one2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
     cosine = np.dot(v1, v2.T) / (np.linalg.norm(v1) *
                                  np.linalg.norm(v2, axis=1))
     # Избавляемся от погрешности
-    cosine = np.clip(cosine, 0.0, 1.0)
+    cosine = np.clip(cosine, -1.0, 1.0)
     return np.arccos(cosine)
 
 
@@ -65,5 +65,5 @@ def angular_many2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
     cosine = np.sum(v1 * v2, axis=1) / (np.linalg.norm(v1, axis=1) *
                                         np.linalg.norm(v2, axis=1))
     # Избавляемся от погрешности
-    cosine = np.clip(cosine, 0.0, 1.0)
+    cosine = np.clip(cosine, -1.0, 1.0)
     return np.arccos(cosine)
