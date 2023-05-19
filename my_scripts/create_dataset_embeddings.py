@@ -59,6 +59,7 @@ def main(**kwargs):
             dset_embeddings.append(cls_embeddings)
         
     dset_embeddings = np.stack(dset_embeddings, axis=0)
+    save_path.parent.mkdir(exist_ok=True, parents=True)
     np.save(save_path, dset_embeddings)
 
 
