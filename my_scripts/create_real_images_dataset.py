@@ -64,6 +64,20 @@ def main(**kwargs):
     net_input_size = kwargs['net_input']
     dataset_path = kwargs['save_dir']
     raw = kwargs['raw_source']
+    b_size = kwargs['batch_size']
+
+    # Если шаг 0, то прировнять его к fov. То есть нарезка без перекрытия.
+    if overlap == 0:
+        overlap = fov
+    # Если необходимо, сгенерировать название для папки датасета
+    if dataset_path is None and save_dset:
+        dataset_path = (
+            Path(__file__).parents[2] / 'data' / 'real_images_dataset' /
+            (f'win{args.fov}m_overlap{args.overlap}m_'
+             f'samples{args.num_samples}_input{args.net_input}px'))
+        print('Директория для сохранения датасета не указана. '
+              'Датасет будет сохранён в следующей директории:\n'
+              f'"{dataset_path}"\n')
 
     img = read_image(img_path)
     if raw:
@@ -186,18 +200,6 @@ def parse_args() -> argparse.Namespace:
               '"project_dir/../data/real_images_dataset/" с названием, '
               'созданным из переданных аргументов.'))
     args = parser.parse_args()
-
-    # Если шаг 0, то прировнять его к fov. То есть нарезка без перекрытия.
-    if args.overlap == 0:
-        args.overlap = args.fov
-    # Если необходимо, сгенерировать название для папки датасета
-    if args.save_dir is None and args.save_dataset:
-        args.save_dir = (
-            Path(__file__).parents[2] / 'data' / 'real_images_dataset' /
-            (f'win{args.fov}m_overlap{args.overlap}m_'
-             f'samples{args.num_samples}_input{args.net_input}px'))
-        print('Директория для сохранения датасета не указана. Датасет будет '
-              f'сохранён в следующей директории "{args.save_dir}"')
 
     if not args.source_img_path.exists():
         raise FileNotFoundError(
