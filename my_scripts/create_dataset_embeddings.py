@@ -31,7 +31,10 @@ def main(**kwargs):
     cls_dirs = list(sorted(cls_dirs, key=lambda path: int(str(path.name)[1:])))
 
     with torch.no_grad():
-        model = load_model(model_name, model_path).cuda()
+        device = (torch.device('cuda') if torch.cuda.is_available()
+              else torch.device('cpu'))
+
+        model = load_model(model_name, model_path).to(device=device)
 
         dset_embeddings: List[List[np.ndarray]] = []
         desc = 'Обработка датасета'
@@ -50,7 +53,7 @@ def main(**kwargs):
                     img = preprocess_model_input(img)
                     img_batch.append(img)
                 # Отправляем в сеть, сохраняем выход
-                img_batch = torch.cat(img_batch, axis=0).cuda()
+                img_batch = torch.cat(img_batch, axis=0).to(device=device)
                 embeddings = model(img_batch).cpu().numpy()
                 cls_embeddings.append(embeddings)
 

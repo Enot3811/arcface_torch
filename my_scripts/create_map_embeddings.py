@@ -22,8 +22,6 @@ def main(**kwargs):
     model_path: Path = kwargs['model_path']
     model_name: str = kwargs['model_name']
 
-    model = load_model(model_name, model_path)
-
     img_paths: List[Path] = list(win_dir_path.glob('*'))
     # Отсортировать изображения по номерам классов
     img_paths = list(
@@ -31,10 +29,15 @@ def main(**kwargs):
     # Прогоняем все окна через модель
     embeddings: List[np.ndarray] = []
     with torch.no_grad():
+        device = (torch.device('cuda') if torch.cuda.is_available()
+              else torch.device('cpu'))
+
+        model = load_model(model_name, model_path).to(device=device)
+
         for img_path in tqdm(img_paths):
             window = read_image(img_path)
-            window = preprocess_model_input(window)
-            embeddings.append(model(window).numpy())
+            window = preprocess_model_input(window).to(device=device)
+            embeddings.append(model(window).cpu().numpy())
         
     results = np.concatenate(embeddings, axis=0)
     save_path.parent.mkdir(parents=True, exist_ok=True)
