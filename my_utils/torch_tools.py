@@ -1,16 +1,14 @@
 import torch
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
 import numpy as np
-import cv2
 
 
 def get_augmentation(color_jitter: bool, elastic: bool):
     transf = []
     if color_jitter:
         transf.append(
-            transforms.ColorJitter(brightness=(0.5, 1.3), contrast=(0.7, 1.2),
-                                   saturation=(0.7, 1.2), hue=0.1))
+            transforms.ColorJitter(brightness=(0.5, 1.5), contrast=(0.6, 1.4),
+                                   saturation=(0.7, 1.3), hue=0.2))
     if elastic:
         transf.append(transforms.RandomApply(
             transforms=[transforms.ElasticTransform(alpha=10.0)], p=0.1))
