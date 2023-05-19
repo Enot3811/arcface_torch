@@ -1,0 +1,29 @@
+from easydict import EasyDict as edict
+
+# make training faster
+# our RAM is 256G
+# mount -t tmpfs -o size=140G  tmpfs /train_tmp
+
+config = edict()
+config.margin_list = (1.0, 0.5, 0.0)
+config.network = "r200"
+config.resume = False
+config.output = None
+config.embedding_size = 512
+config.sample_rate = 1.0
+config.fp16 = True
+config.momentum = 0.9
+config.weight_decay = 5e-4
+config.batch_size = 32
+config.lr = 0.005
+config.verbose = 2000
+config.dali = False
+
+config.rec = ('/home/pc0/projects/arcface/data/real_images_dataset/'
+              'win200m_overlap200m_samples100_input224px')
+config.num_classes = 1225
+config.num_image = 1225 * 100
+config.num_epoch = 7
+config.warmup_epoch = 0
+config.val_targets = ['lfw', 'cfp_fp', "agedb_30"]
+config.save_all_states = True
