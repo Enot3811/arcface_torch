@@ -116,7 +116,7 @@ def main(**kwargs):
             n_w_win = w // new_fov
             for _ in range(3):
                 augmented_windows = augmentations(numpy_to_tensor(windows).
-                                                  to(device=device))
+                                                  to(device=device)).cpu()
                 augmented_windows = tensor_to_numpy(augmented_windows)
                 show_grid(augmented_windows, n_h_win, n_w_win)
                 plt.show()
