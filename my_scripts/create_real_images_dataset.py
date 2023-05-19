@@ -192,6 +192,8 @@ def parse_args() -> argparse.Namespace:
             Path(__file__).parents[2] / 'data' / 'real_images_dataset' /
             (f'win{args.fov}m_overlap{args.overlap}m_'
              f'samples{args.num_samples}_input{args.net_input}px'))
+        print('Директория для сохранения датасета не указана. Датасет будет '
+              f'сохранён в следующей директории "{args.save_dir}"')
 
     if not args.source_img_path.exists():
         raise FileNotFoundError(
