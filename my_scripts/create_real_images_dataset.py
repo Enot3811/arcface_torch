@@ -59,8 +59,8 @@ def main(**kwargs):
     orig_scale = kwargs['scale']
     overlap = kwargs['overlap']
     show_cut = kwargs['show_grid']
-    save_dset = kwargs['save_dataset']
-    num_samples = kwargs['num_samples']
+    train_samples = kwargs['num_train']
+    test_samples = kwargs['num_test']
     net_input_size = kwargs['net_input']
     dataset_path = kwargs['save_dir']
     raw = kwargs['raw_source']
@@ -70,11 +70,11 @@ def main(**kwargs):
     if overlap == 0:
         overlap = fov
     # Если необходимо, сгенерировать название для папки датасета
-    if dataset_path is None and save_dset:
+    if dataset_path is None:
         dataset_path = (
             Path(__file__).parents[2] / 'data' / 'real_images_dataset' /
-            (f'win{args.fov}m_overlap{args.overlap}m_'
-             f'samples{args.num_samples}_input{args.net_input}px'))
+            (f'win{fov}m_overlap{overlap}m_'
+             f'samples{train_samples}_input{net_input_size}px'))
         print('Директория для сохранения датасета не указана. '
               'Датасет будет сохранён в следующей директории:\n'
               f'"{dataset_path}"\n')
@@ -106,7 +106,7 @@ def main(**kwargs):
     with torch.no_grad():
         device = (torch.device('cuda') if torch.cuda.is_available()
                   else torch.device('cpu'))
-        print(f'Using {device} for dataset creating.')
+        print(f'\nUsing {device} for dataset creating.')
         augmentations = get_augmentation(color_jitter=True, elastic=True)
 
         # Отобразить порезанные окна
@@ -121,35 +121,39 @@ def main(**kwargs):
                 show_grid(augmented_windows, n_h_win, n_w_win)
                 plt.show()
 
-        if save_dset:
-            dataset_images_path = dataset_path / 'images'
-            cut_image_path = dataset_path / 'cut_image'
-            cut_image_path.mkdir(parents=True, exist_ok=True)
+        # Сохраняем порезанные окна без аугментаций
+        cut_image_path = dataset_path / 'cut_image'
+        cut_image_path.mkdir(parents=True, exist_ok=True)
+        desc = 'Сохранение нарезанных окон'
+        for i in tqdm(range(windows.shape[0]), desc=desc):
+            save_image(windows[i], cut_image_path / f's{i}.jpg')
 
-            desc = 'Сохранение нарезанных окон'
-            for i in tqdm(range(windows.shape[0]), desc=desc):
-                # Создаём директории под классы
+        # Создаём выборки
+        for num_samples, directory in zip((train_samples, test_samples),
+                                          ('train_images', 'test_images')):
+            dataset_images_path = dataset_path / directory
+
+            # Создаём директории под классы
+            for i in range(windows.shape[0]):
                 dir_path = dataset_images_path / f's{i}'
                 dir_path.mkdir(parents=True, exist_ok=True)
 
-                # Сохраняем порезанные окна без аугментаций
-                save_image(windows[i], cut_image_path / f's{i}.jpg')
-
             # Делаем случайные аугментации и сохраняем их
-            windows = numpy_to_tensor(windows).to(device=device)
-            # TODO сделать аугментацию и сохранение батчами.
-            # Проверить эффективность
-            b_size = windows.size(0)
-            desc = 'Создание и сохранение аугментированных семплов датасета'
+            set_name = directory.split('_')[0]
+            desc = f'Создание {set_name} выборки'
             for i in tqdm(range(num_samples), desc=desc):
-                for j in range(0, windows.shape[0], b_size):
+                for cls_idx in range(0, windows.shape[0], b_size):
 
-                    augmented_windows = augmentations(windows[j:j + b_size])
-                    augmented_windows = tensor_to_numpy(augmented_windows)
+                    # Набираем батч окон
+                    win_batch = windows[cls_idx: cls_idx + b_size]
+                    win_batch = numpy_to_tensor(win_batch).to(device=device)
+                    augmented_win_batch = augmentations(win_batch).cpu()
+                    augmented_win_batch = tensor_to_numpy(augmented_win_batch)
 
-                    for k in range(j, j + b_size):
-                        path = dataset_images_path / f's{k}' / f'{i}.jpg'
-                        save_image(augmented_windows[k % b_size], path)
+                    for j in range(cls_idx,
+                                   cls_idx + augmented_win_batch.shape[0]):
+                        path = dataset_images_path / f's{j}' / f'{i}.jpg'
+                        save_image(augmented_win_batch[j % b_size], path)
 
 
 def parse_args() -> argparse.Namespace:
@@ -180,19 +184,24 @@ def parse_args() -> argparse.Namespace:
         '--show_grid', action='store_true',
         help='Отобразить порезанный снимок.')
     parser.add_argument(
-        '--save_dataset', action='store_true',
-        help='Сохранить датасет.')
-    parser.add_argument(
         '--raw_source', action='store_true',
         help=('Провести предварительную предобработку переданного изображения '
               '(повернуть и обрезать белые края).'))
     parser.add_argument(
-        '--num_samples', type=int, default=100,
-        help='Количество производимых семплов на класс.')
+        '--num_train', type=int, default=0,
+        help=('Количество производимых семплов на класс '
+              'для тренировочной выборки.'))
+    parser.add_argument(
+        '--num_test', type=int, default=0,
+        help=('Количество производимых семплов на класс '
+              'для тестовой выборки.'))
     parser.add_argument(
         '--net_input', type=int, default=112,
-        help='Размер входа сети, к которому будут приводиться нарезаемые окна.'
-    )
+        help=('Размер входа сети, к которому будут приводиться '
+              'нарезаемые окна.'))
+    parser.add_argument(
+        '--batch_size', type=int, default=32,
+        help='Размер батча при создании датасета.')
     parser.add_argument(
         '--save_dir', type=Path, default=None,
         help=('Директория для сохранения датасета. '
