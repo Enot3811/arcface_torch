@@ -43,6 +43,7 @@ import argparse
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import torch
 
 import sys
 sys.path.append(str(Path(__file__).parents[1]))
@@ -88,50 +89,53 @@ def main(**kwargs):
     
     print('Порезанные окна:', windows.shape)
 
-    augmentations = get_augmentation(color_jitter=True, elastic=True)
+    with torch.no_grad():
+        device = (torch.device('cuda') if torch.cuda.is_available()
+                  else torch.device('cpu'))
+        print(f'Using {device} for dataset creating.')
+        augmentations = get_augmentation(color_jitter=True, elastic=True)
 
-    # Отобразить порезанные окна
-    # Чтобы корректно работало, необходимо резать без перекрытия
-    if show_cut:
-        plt.imshow(img)
-
-        n_h_win = h // new_fov
-        n_w_win = w // new_fov
-        for _ in range(3):
-            augmented_windows = augmentations(numpy_to_tensor(windows))
-            augmented_windows = tensor_to_numpy(augmented_windows)
-            show_grid(augmented_windows, n_h_win, n_w_win)
-            plt.show()
-
-    if save_dset:
-        dataset_images_path = dataset_path / 'images'
-        cut_image_path = dataset_path / 'cut_image'
-        cut_image_path.mkdir(parents=True, exist_ok=True)
-
-        desc = 'Сохранение нарезанных окон'
-        for i in tqdm(range(windows.shape[0]), desc=desc):
-            # Создаём директории под классы
-            dir_path = dataset_images_path / f's{i}'
-            dir_path.mkdir(parents=True, exist_ok=True)
-
-            # Сохраняем порезанные окна без аугментаций
-            save_res = save_image(windows[i], cut_image_path / f's{i}.jpg')
-
-        # Делаем случайные аугментации и сохраняем их
-        windows = numpy_to_tensor(windows)
-        # TODO сделать аугментацию и сохранение батчами.
-        # Проверить эффективность
-        b_size = windows.size(0)
-        desc = 'Создание и сохранение аугментированных семплов датасета'
-        for i in tqdm(range(num_samples), desc=desc):
-            for j in range(0, windows.shape[0], b_size):
-
-                augmented_windows = augmentations(windows[j:j + b_size])
+        # Отобразить порезанные окна
+        # Чтобы корректно работало, необходимо резать без перекрытия
+        if show_cut:
+            n_h_win = h // new_fov
+            n_w_win = w // new_fov
+            for _ in range(3):
+                augmented_windows = augmentations(numpy_to_tensor(windows).
+                                                  to(device=device))
                 augmented_windows = tensor_to_numpy(augmented_windows)
+                show_grid(augmented_windows, n_h_win, n_w_win)
+                plt.show()
 
-                for k in range(j, j + b_size):
-                    path = dataset_images_path / f's{k}' / f'{i}.jpg'
-                    save_image(augmented_windows[k % b_size], path)
+        if save_dset:
+            dataset_images_path = dataset_path / 'images'
+            cut_image_path = dataset_path / 'cut_image'
+            cut_image_path.mkdir(parents=True, exist_ok=True)
+
+            desc = 'Сохранение нарезанных окон'
+            for i in tqdm(range(windows.shape[0]), desc=desc):
+                # Создаём директории под классы
+                dir_path = dataset_images_path / f's{i}'
+                dir_path.mkdir(parents=True, exist_ok=True)
+
+                # Сохраняем порезанные окна без аугментаций
+                save_image(windows[i], cut_image_path / f's{i}.jpg')
+
+            # Делаем случайные аугментации и сохраняем их
+            windows = numpy_to_tensor(windows).to(device=device)
+            # TODO сделать аугментацию и сохранение батчами.
+            # Проверить эффективность
+            b_size = windows.size(0)
+            desc = 'Создание и сохранение аугментированных семплов датасета'
+            for i in tqdm(range(num_samples), desc=desc):
+                for j in range(0, windows.shape[0], b_size):
+
+                    augmented_windows = augmentations(windows[j:j + b_size])
+                    augmented_windows = tensor_to_numpy(augmented_windows)
+
+                    for k in range(j, j + b_size):
+                        path = dataset_images_path / f's{k}' / f'{i}.jpg'
+                        save_image(augmented_windows[k % b_size], path)
 
 
 def parse_args() -> argparse.Namespace:
