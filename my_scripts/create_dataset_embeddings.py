@@ -22,6 +22,7 @@ def main(**kwargs):
     model_path: Path = kwargs['model_path']
     model_name: str = kwargs['model_name']
     b_size: int = kwargs['batch_size']
+    make_mean: bool = kwargs['mean']
 
     cls_dirs: List[Path] = list(dset_path.glob('*'))
     # Отфильтровать только директории на случай,
@@ -62,7 +63,9 @@ def main(**kwargs):
             cls_embeddings = np.concatenate(cls_embeddings, axis=0)
             dset_embeddings.append(cls_embeddings)
         
-    dset_embeddings = np.stack(dset_embeddings, axis=0)
+    dset_embeddings: np.ndarray = np.stack(dset_embeddings, axis=0)
+    if make_mean:
+        dset_embeddings = np.mean(dset_embeddings, axis=1, keepdims=True)
     save_path.parent.mkdir(exist_ok=True, parents=True)
     np.save(save_path, dset_embeddings)
 
@@ -94,6 +97,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         '--batch_size', type=int, default=32,
         help='Размер батча, отправляемого в сеть.')
+    parser.add_argument(
+        '--mean', action='store_true',
+        help='Усреднить embeddings перед записью.')
     args = parser.parse_args()
 
     if not args.dataset_path.exists():
