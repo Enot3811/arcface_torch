@@ -3,9 +3,9 @@ from pathlib import Path
 
 import numpy as np
 import cv2
-import torch
-from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 
 def read_image(path: Union[Path, str], grayscale: bool = False) -> np.ndarray:
@@ -260,3 +260,24 @@ def show_grid(
         axs[row][column].get_xaxis().set_visible(False)
         axs[row][column].imshow(arr[i])
     return axs
+
+
+def figure_to_ndarray(fig: Figure) -> np.ndarray:
+    """Конвертирует `figure` в изображение в виде `ndarray`.
+
+    Parameters
+    ----------
+    fig : Figure
+        Фигура, которую необходимо конвертировать.
+
+    Returns
+    -------
+    np.ndarray
+        Изображение из фигуры.
+    """    
+    canvas = FigureCanvasAgg(fig)
+    canvas.draw()  # draw the canvas, cache the renderer
+    image_flat = np.frombuffer(canvas.tostring_rgb(), dtype='uint8')  #(H*W*3,)
+    image = image_flat.reshape(*fig.canvas.get_width_height(), 3)  # (H, W, 3)
+    return image
+
