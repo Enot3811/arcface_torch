@@ -23,6 +23,7 @@ def main(**kwargs):
     model_name: str = kwargs['model_name']
     b_size: int = kwargs['batch_size']
     make_mean: bool = kwargs['mean']
+    device: str = kwargs['device']
 
     cls_dirs: List[Path] = list(dset_path.glob('*'))
     # Отфильтровать только директории на случай,
@@ -32,8 +33,11 @@ def main(**kwargs):
     cls_dirs = list(sorted(cls_dirs, key=lambda path: int(str(path.name)[1:])))
 
     with torch.no_grad():
-        device = (torch.device('cuda') if torch.cuda.is_available()
-                  else torch.device('cpu'))
+        if device == 'auto':
+            device: torch.device = (torch.device('cuda') if torch.cuda.is_available()
+                    else torch.device('cpu'))
+        else:
+            device: torch.device = torch.device(device)
         print(f'Using {device} for embeddings creating.')
 
         model = load_model(model_name, model_path).to(device=device)
@@ -100,6 +104,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         '--mean', action='store_true',
         help='Усреднить embeddings перед записью.')
+    parser.add_argument(
+        '--device', type=str, default='auto', choices=['cpu', 'cuda', 'auto'],
+        help=('Устройство, на котором проводить вычисления.'
+              '`auto` выбирает cuda по возможности.'))
     args = parser.parse_args()
 
     if not args.dataset_path.exists():
