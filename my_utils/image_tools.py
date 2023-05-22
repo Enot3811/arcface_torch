@@ -281,3 +281,37 @@ def figure_to_ndarray(fig: Figure) -> np.ndarray:
     image = image_flat.reshape(*fig.canvas.get_width_height(), 3)  # (H, W, 3)
     return image
 
+
+def overlay_images(
+    img1: np.ndarray,
+    img2: np.ndarray,
+    img_size: Tuple[int, int] = None
+) -> np.ndarray:
+    """Наложить одно изображение на другое.
+
+    Parameters
+    ----------
+    img1 : np.ndarray
+        Первое изображение.
+    img2 : np.ndarray
+        Второе изображение.
+    img_size : Tuple[int, int], optional
+        Размеры итогового изображения.
+        Если не заданы, то берутся размеры первого изображения `img1`.
+
+    Returns
+    -------
+    np.ndarray
+        Наложенное изображение.
+    """
+    if img_size is not None:
+        # Переворачиваем размеры для cv2
+        img_size = img_size[::-1]
+        img1 = cv2.resize(img1, dsize=img_size)
+    else:
+        # Переворачиваем размеры для cv2
+        img_size = img1.shape[1::-1]
+    img2 = cv2.resize(img2, dsize=img_size)
+
+    overlay_img = cv2.addWeighted(img1, 0.5, img2, 0.5, 0.0)
+    return overlay_img
