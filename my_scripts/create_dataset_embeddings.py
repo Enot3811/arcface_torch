@@ -33,7 +33,7 @@ def main(**kwargs):
     with torch.no_grad():
         device = (torch.device('cuda') if torch.cuda.is_available()
                   else torch.device('cpu'))
-        print(f'Using {device} for dataset creating.')
+        print(f'Using {device} for embeddings creating.')
 
         model = load_model(model_name, model_path).to(device=device)
 
