@@ -20,7 +20,7 @@ config.verbose = 2000
 config.dali = False
 
 config.rec = ('/home/pc0/projects/arcface/data/real_images_dataset/'
-              'win500m_overlap500m_samples500_input224px')
+              'win500m_overlap150m_samples200_input224px')
 config.num_classes = 2025
 config.num_image = 2025 * 200
 config.num_epoch = 10
