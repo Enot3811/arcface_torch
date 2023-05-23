@@ -24,6 +24,7 @@ def main(**kwargs):
     b_size: int = kwargs['batch_size']
     make_mean: bool = kwargs['mean']
     device: str = kwargs['device']
+    num_samples: int = kwargs['num_samples']
 
     cls_dirs: List[Path] = list(dset_path.glob('*'))
     # Отфильтровать только директории на случай,
@@ -35,7 +36,7 @@ def main(**kwargs):
     with torch.no_grad():
         if device == 'auto':
             device: torch.device = (torch.device('cuda') if torch.cuda.is_available()
-                    else torch.device('cpu'))
+                                    else torch.device('cpu'))
         else:
             device: torch.device = torch.device(device)
         print(f'Using {device} for embeddings creating.')
@@ -50,7 +51,9 @@ def main(**kwargs):
 
             # Перебираем изображения класса
             cls_embeddings = []
-            for i in range(0, len(cls_images_paths), b_size):
+            if num_samples == -1:
+                num_samples = len(cls_images_paths)
+            for i in range(0, num_samples, b_size):
                 batch_paths = cls_images_paths[i: i + b_size]
                 # Набираем батч картинок
                 img_batch = []
@@ -106,8 +109,13 @@ def parse_args() -> argparse.Namespace:
         help='Усреднить embeddings перед записью.')
     parser.add_argument(
         '--device', type=str, default='auto', choices=['cpu', 'cuda', 'auto'],
-        help=('Устройство, на котором проводить вычисления.'
-              '`auto` выбирает cuda по возможности.'))
+        help=('Устройство, на котором проводить вычисления. '
+              'auto выбирает cuda по возможности.'))
+    parser.add_argument(
+        '--num_samples', type=int, default=-1,
+        help=('Количество отбираемых семплов на класс. По умолчанию равен -1,'
+              ' что означает взятие всех имеющихся семплов. '
+              'Число должно быть кратно размеру батча batch_size.'))
     args = parser.parse_args()
 
     if not args.dataset_path.exists():
