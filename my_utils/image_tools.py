@@ -154,9 +154,9 @@ def get_sliding_windows(
     Returns
     -------
     np.ndarray
-        The cut image with shape `[num_windows, h_win, w_win, c]`.
+        The cut image with shape `[n_h_win, n_w_win, h_win, w_win, c]`.
     """
-    w, h, c = source_image.shape
+    h, w, c = source_image.shape
 
     if stride is None:
         stride = w_win
@@ -169,8 +169,7 @@ def get_sliding_windows(
         np.expand_dims(np.arange(h_win), 0) +
         np.expand_dims(np.arange(h - h_win - 1, step=stride), 0).T
     )
-    windows = source_image[x_indexer][:, :, y_indexer].swapaxes(1, 2)
-    windows = windows.reshape(-1, w_win, h_win, c)
+    windows = source_image[y_indexer][:, :, x_indexer].swapaxes(1, 2)
     return windows
 
 
