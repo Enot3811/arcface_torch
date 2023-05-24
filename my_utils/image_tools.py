@@ -238,7 +238,7 @@ def show_grid(
     Parameters
     ----------
     arr : np.ndarray
-        The batch of the images with shape `[b, h, w, c]`.
+        The batch of the images with shape `[b, h_img, w_img, c]`.
     h : int
         A number of images in one column of the grid.
     w : int
@@ -256,11 +256,16 @@ def show_grid(
     plt.tight_layout()
     plt.subplots_adjust(wspace=0, hspace=0)
     for i in range(arr.shape[0]):
-        row = i // w
-        column = i % w
-        axs[row][column].get_yaxis().set_visible(False)
-        axs[row][column].get_xaxis().set_visible(False)
-        axs[row][column].imshow(arr[i])
+        if h == 1 or w == 1:
+            axs[i].get_yaxis().set_visible(False)
+            axs[i].get_xaxis().set_visible(False)
+            axs[i].imshow(arr[i])
+        else:
+            row = i // w
+            column = i % w
+            axs[row][column].get_yaxis().set_visible(False)
+            axs[row][column].get_xaxis().set_visible(False)
+            axs[row][column].imshow(arr[i])
     return axs
 
 
