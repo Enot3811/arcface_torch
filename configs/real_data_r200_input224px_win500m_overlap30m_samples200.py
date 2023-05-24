@@ -20,10 +20,10 @@ config.verbose = 2000
 config.dali = False
 
 config.rec = ('/home/pc0/projects/arcface/data/real_images_dataset/'
-              'win500m_overlap20m_samples200_input224px')
-config.num_classes = 138380
-config.num_image = 138380 * 200
-config.num_epoch = 20
+              'win500m_overlap30m_samples200_input224px')
+config.num_classes = 52668
+config.num_image = 52668 * 200
+config.num_epoch = 15
 config.warmup_epoch = 0
 config.val_targets = ['lfw', 'cfp_fp', "agedb_30"]
 config.save_all_states = True
