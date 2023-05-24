@@ -108,7 +108,6 @@ def main(**kwargs):
     with torch.no_grad():
         device = (torch.device('cuda') if torch.cuda.is_available()
                   else torch.device('cpu'))
-        print(f'\nUsing {device} for dataset creating.')
         augmentations = get_augmentation(color_jitter=True, elastic=True)
 
         # Отобразить порезанные окна
@@ -124,11 +123,13 @@ def main(**kwargs):
                 plt.show()
 
         # Сохраняем порезанные окна без аугментаций
-        cut_image_path = dataset_path / 'cut_image'
-        cut_image_path.mkdir(parents=True, exist_ok=True)
-        desc = 'Сохранение нарезанных окон'
-        for i in tqdm(range(windows.shape[0]), desc=desc):
-            save_image(windows[i], cut_image_path / f's{i}.jpg')
+        if train_samples > 0 or test_samples > 0:
+            print(f'\nUsing {device} for dataset creating.')
+            cut_image_path = dataset_path / 'cut_image'
+            cut_image_path.mkdir(parents=True, exist_ok=True)
+            desc = 'Сохранение нарезанных окон'
+            for i in tqdm(range(windows.shape[0]), desc=desc):
+                save_image(windows[i], cut_image_path / f's{i}.jpg')
 
         # Создаём выборки
         for num_samples, directory in zip((train_samples, test_samples),
@@ -136,26 +137,29 @@ def main(**kwargs):
             dataset_images_path = dataset_path / directory
 
             # Создаём директории под классы
-            for i in range(windows.shape[0]):
-                dir_path = dataset_images_path / f's{i}'
-                dir_path.mkdir(parents=True, exist_ok=True)
+            if num_samples > 0:
+                for i in range(windows.shape[0]):
+                    dir_path = dataset_images_path / f's{i}'
+                    dir_path.mkdir(parents=True, exist_ok=True)
 
-            # Делаем случайные аугментации и сохраняем их
-            set_name = directory.split('_')[0]
-            desc = f'Создание {set_name} выборки'
-            for i in tqdm(range(num_samples), desc=desc):
-                for cls_idx in range(0, windows.shape[0], b_size):
+                # Делаем случайные аугментации и сохраняем их
+                set_name = directory.split('_')[0]
+                desc = f'Создание {set_name} выборки'
+                for i in tqdm(range(num_samples), desc=desc):
+                    for cls_idx in range(0, windows.shape[0], b_size):
 
-                    # Набираем батч окон
-                    win_batch = windows[cls_idx: cls_idx + b_size]
-                    win_batch = numpy_to_tensor(win_batch).to(device=device)
-                    augmented_win_batch = augmentations(win_batch).cpu()
-                    augmented_win_batch = tensor_to_numpy(augmented_win_batch)
+                        # Набираем батч окон
+                        win_batch = windows[cls_idx: cls_idx + b_size]
+                        win_batch = (numpy_to_tensor(win_batch)
+                                     .to(device=device))
+                        augmented_win_batch = augmentations(win_batch).cpu()
+                        augmented_win_batch = tensor_to_numpy(
+                            augmented_win_batch)
 
-                    for j in range(cls_idx,
-                                   cls_idx + augmented_win_batch.shape[0]):
-                        path = dataset_images_path / f's{j}' / f'{i}.jpg'
-                        save_image(augmented_win_batch[j % b_size], path)
+                        for j in range(cls_idx,
+                                    cls_idx + augmented_win_batch.shape[0]):
+                            path = dataset_images_path / f's{j}' / f'{i}.jpg'
+                            save_image(augmented_win_batch[j % b_size], path)
 
 
 def parse_args() -> argparse.Namespace:
