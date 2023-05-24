@@ -42,16 +42,18 @@ def read_image(path: Union[Path, str], grayscale: bool = False) -> np.ndarray:
     return img
 
 
-def save_image(img: np.ndarray, path: Path) -> None:
+def save_image(img: np.ndarray, path: Union[Path, str]) -> None:
     """Сохранить переданное изображение по указанному пути.
 
     Parameters
     ----------
     img : np.ndarray
         Сохраняемое изображение.
-    path : Path
+    path : Union[Path, str]
         Путь для сохранения изображения.
     """
+    if isinstance(path, str):
+        path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     success = cv2.imwrite(str(path), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
     if not success:
