@@ -102,6 +102,8 @@ def main(**kwargs):
         img, new_fov, new_fov, scaled_overlap_px)
     
     print('Порезанные окна:', windows.shape)
+    windows = windows.reshape(-1, new_fov, new_fov, windows.shape[-1])
+    print('Количество классов:', windows.shape[0])
 
     with torch.no_grad():
         device = (torch.device('cuda') if torch.cuda.is_available()
