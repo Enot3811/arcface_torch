@@ -35,8 +35,9 @@ def main(**kwargs):
 
     with torch.no_grad():
         if device == 'auto':
-            device: torch.device = (torch.device('cuda') if torch.cuda.is_available()
-                                    else torch.device('cpu'))
+            device: torch.device = (
+                torch.device('cuda') if torch.cuda.is_available()
+                else torch.device('cpu'))
         else:
             device: torch.device = torch.device(device)
         print(f'Using {device} for embeddings creating.')

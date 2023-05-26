@@ -73,9 +73,14 @@ def main(**kwargs):
     
 
     with torch.no_grad():
-        device = (torch.device('cuda') if torch.cuda.is_available()
-                  else torch.device('cpu'))
+        if device == 'auto':
+            device: torch.device = (
+                torch.device('cuda') if torch.cuda.is_available()
+                else torch.device('cpu'))
+        else:
+            device: torch.device = torch.device(device)
         print(f'Using {device} for dataset creating.')
+
         augmentations = get_augmentation(color_jitter=True, elastic=True)
 
         # Генерируем выборки

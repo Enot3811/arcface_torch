@@ -21,6 +21,7 @@ def main(**kwargs):
     save_path: Path = kwargs['save_path']
     model_path: Path = kwargs['model_path']
     model_name: str = kwargs['model_name']
+    device: str = kwargs['device']
 
     img_paths: List[Path] = list(win_dir_path.glob('*'))
     # Отсортировать изображения по номерам классов
@@ -29,8 +30,12 @@ def main(**kwargs):
     # Прогоняем все окна через модель
     embeddings: List[np.ndarray] = []
     with torch.no_grad():
-        device = (torch.device('cuda') if torch.cuda.is_available()
-              else torch.device('cpu'))
+        if device == 'auto':
+            device: torch.device = (
+                torch.device('cuda') if torch.cuda.is_available()
+                else torch.device('cpu'))
+        else:
+            device: torch.device = torch.device(device)
         print(f'Using {device} for embeddings creating.')
 
         model = load_model(model_name, model_path).to(device=device)
@@ -68,6 +73,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         'model_name', type=str,
         help='Название модели.')
+    parser.add_argument(
+        '--device', type=str, default='auto', choices=['cpu', 'cuda', 'auto'],
+        help=('Устройство, на котором проводить вычисления. '
+              'auto выбирает cuda по возможности.'))
     args = parser.parse_args()
 
     if not args.cut_windows_path.exists():
