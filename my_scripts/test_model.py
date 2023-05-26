@@ -7,78 +7,13 @@
 
 import argparse
 from pathlib import Path
-from typing import Tuple
 
 import numpy as np
 
 import sys
 sys.path.append(str(Path(__file__).parents[1]))
-from my_utils.np_tools import normalize, angular_one2many
-
-
-def mean_angular_distances(
-    embeddings: np.ndarray, centroids: np.ndarray
-) -> np.ndarray:
-    """
-    Берётся центроид и embeddings семплов каждого класса и вычисляется
-    средний угол между embeddings и центроидом соответствующего класса.
-
-    Args:
-        embeddings (np.ndarray): Матрица embeddings с размерами
-        `(n_classes, n_samples, embed_dim)`.
-        centroids (np.ndarray): Матрица с embeddings центроидов размерами
-        `(n_classes, embed_dim)`.
-
-    Returns:
-        np.ndarray: Среднее угловое расстояние для каждого класса размером
-        `(n_classes,)`
-    """    
-    n_classes = embeddings.shape[0]
-    classes_distances = []
-    for cls in range(n_classes):
-        cls_centroid = centroids[cls]
-        cls_embeddings = embeddings[cls]
-        classes_distances.append(
-            angular_one2many(cls_centroid, cls_embeddings))
-
-    classes_distances = np.stack(classes_distances, axis=0)
-    mean_classes_distances = np.mean(classes_distances, axis=1)
-    return mean_classes_distances
-
-
-def classify_samples(
-    embeddings: np.ndarray, centroids: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Return predicted indexes for an every sample and accuracy per class.
-
-    Args:
-        embeddings (np.ndarray): An embeddings tensor with shape
-        `[n_classes, embed_dim]`.
-        centroids (np.ndarray): A centroids tensor with shape
-        `[n_classes, embed_dim]`.
-
-    Returns:
-        Tuple[np.ndarray, np.ndarray]: The predicted indexes with shape
-        `[n_cls, n_samples]` and accuracy per class with shape `[n_cls,]`.
-    """
-    n_classes, n_samples = embeddings.shape[:2]
-
-    classes_distances = []
-    for i in range(n_classes):
-        cur_distances = []
-        for j in range(n_samples):
-        
-            current_sample = embeddings[i, j]
-            cur_distances.append(angular_one2many(current_sample, centroids))
-
-        classes_distances.append(np.stack(cur_distances, axis=0))
-    classes_distances = np.stack(classes_distances, axis=0)
-
-    nearest_idxs = np.argmin(classes_distances, axis=-1)
-    gt_idxs = np.tile(np.arange(n_classes)[:, None], (1, n_samples))
-    accuracy_per_class = np.sum(nearest_idxs == gt_idxs, axis=-1) / n_samples
-    return nearest_idxs, accuracy_per_class
+from my_utils.np_tools import (normalize, mean_angular_distances, 
+                               classify_samples)
 
 
 def main(**kwargs):
