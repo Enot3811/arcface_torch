@@ -62,29 +62,50 @@ def angular_one2many(
     return np.arccos(cosine) * transf_coef
 
 
-def angular_many2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
-    """
-    Calculate one to one angles in radians between batches of vectors
-    v1 and v2.
-    First element of v1 with first element of v2, second with second e.t.c.
+def angular_many2many(
+    v1: np.ndarray,
+    v2: np.ndarray,
+    metric: str = 'deg'
+) -> np.ndarray:
+    """Вычислить углы в радианах между пакетами векторов `v1` и `v2`.
 
     Parameters
     ----------
     v1 : np.ndarray
-        The batch of vectors with shape `(n_vectors, vector_dim)`.
+        Первый пакет векторов с размерами `(n_vectors, vector_dim)`.
     v2 : np.ndarray
-        The batch of vectors with shape `(n_vectors, vector_dim)`.
+        Второй пакет векторов с размерами `(k_vectors, vector_dim)`.
+    metric : str, optional
+        Метрика измерения угла. Принимает "rad" для радианов и "deg" для
+        градусов. По умолчанию равняется "deg".
 
     Returns
     -------
     np.ndarray
-        The angles array with shape `(n_vectors,)`.
+        Углы между векторами с размерами `(n_vectors, k_vectors)`, где каждая
+        n-я строка - это углы между n-м вектором с соответствующими векторами
+        из `v2`.
+
+    Raises
+    ------
+    ValueError
+        Значение metric должно быть либо "rad", либо "deg".
     """
-    cosine = np.sum(v1 * v2, axis=1) / (np.linalg.norm(v1, axis=1) *
-                                        np.linalg.norm(v2, axis=1))
+    if metric == 'rad':
+        transf_coef = 1.0
+    elif metric == 'deg':
+        transf_coef = 180.0 / np.pi
+    else:
+        raise ValueError('Значение metric должно быть либо "rad", либо "deg", '
+                         f'однако получено {metric}')
+    n = v1.shape[0]
+    k = v2.shape[0]
+    cosines = np.empty((n, k))
+    for i in range(n):
+        cosines[i] = angular_one2many(v1[i], v2)
     # Избавляемся от погрешности
-    cosine = np.clip(cosine, -1.0, 1.0)
-    return np.arccos(cosine)
+    cosines = np.clip(cosines, -1.0, 1.0)
+    return np.arccos(cosines) * transf_coef
 
 
 def mean_angular_distances(
