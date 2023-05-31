@@ -21,27 +21,45 @@ def normalize(arr: np.ndarray) -> np.ndarray:
     return (arr - arr.min()) / (arr.max() - arr.min())
 
 
-def angular_one2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
-    """
-    Calculate angles in radians between a vector v1 and a batch of vectors v2.
+def angular_one2many(
+    v1: np.ndarray,
+    v2: np.ndarray,
+    metric: str = 'deg'
+) -> np.ndarray:
+    """Вычислить угол в радианах между вектором `v1` и пакетом векторов `v2`.
 
     Parameters
     ----------
     v1 : np.ndarray
-        The vector with shape `(vector_dim,)`.
+        Вектор с размерами `(vector_dim,)`.
     v2 : np.ndarray
-        The batch of vectors with shape `(n_vectors, vector_dim)`.
+        Пакет векторов с размерами `(n_vectors, vector_dim)`.
+    metric : str, optional
+        Метрика измерения угла. Принимает "rad" для радианов и "deg" для
+        градусов. По умолчанию равняется "deg".
 
     Returns
     -------
     np.ndarray
-        The angles array with shape `(n_vectors,)`.
+        Углы между векторами с размерностью `(n_vectors,)`.
+
+    Raises
+    ------
+    ValueError
+        Значение metric должно быть либо "rad", либо "deg".
     """
+    if metric == 'rad':
+        transf_coef = 1.0
+    elif metric == 'deg':
+        transf_coef = 180.0 / np.pi
+    else:
+        raise ValueError('Значение metric должно быть либо "rad", либо "deg", '
+                         f'однако получено {metric}')
     cosine = np.dot(v1, v2.T) / (np.linalg.norm(v1) *
                                  np.linalg.norm(v2, axis=1))
     # Избавляемся от погрешности
     cosine = np.clip(cosine, -1.0, 1.0)
-    return np.arccos(cosine)
+    return np.arccos(cosine) * transf_coef
 
 
 def angular_many2many(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
