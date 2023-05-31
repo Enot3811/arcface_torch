@@ -140,33 +140,43 @@ def mean_angular_distances(
 def classify_samples(
     embeddings: np.ndarray, centroids: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Return predicted indexes for an every sample and accuracy per class.
+    """Классифицировать полученные embeddings вектора по полученным центроидам.
+    
+    Определение класса происходит посредством вычисления угловых расстояний
+    между векторами из `embeddings` и векторами центроидов из `centroids`.
+    Ближайший центроид и представляет предсказанный класс.
 
     Args:
-        embeddings (np.ndarray): An embeddings tensor with shape
-        `[n_cls, n_cls_samples, embed_dim]`.
-        centroids (np.ndarray): A centroids tensor with shape
+        embeddings (np.ndarray): Пакет embeddings векторов с размерами
+        `[n_samples, embed_dim]`.
+        centroids (np.ndarray): Центроиды классов с размерами
         `[n_cls, embed_dim]`.
 
     Returns:
-        Tuple[np.ndarray, np.ndarray]: The predicted indexes with shape
-        `[n_cls, n_samples]` and accuracy per class with shape `[n_cls,]`.
+        Tuple[np.ndarray, np.ndarray]: Вектор с индексами предсказанных классов
+        размером `[n_samples,]`.
     """
-    n_classes, n_samples = embeddings.shape[:2]
+    distances = angular_many2many(embeddings, centroids)
+    indexes = np.argmin(distances, axis=1)
+    return indexes
 
-    classes_distances = []
-    for i in range(n_classes):
-        cur_distances = []
-        for j in range(n_samples):
-        
-            current_sample = embeddings[i, j]
-            cur_distances.append(angular_one2many(current_sample, centroids))
+def calculate_accuracy(
+    predicts: np.ndarray,
+    ground_truth: np.ndarray
+) -> float:
+    """Вычислить точность `predicts` по отношению к `ground_truth`.
 
-        classes_distances.append(np.stack(cur_distances, axis=0))
-    classes_distances = np.stack(classes_distances, axis=0)
+    Parameters
+    ----------
+    predicts : np.ndarray
+        Вектор предсказанных классов с размерностью `(n_samples,)`.
+    ground_truth : np.ndarray
+        Вектор истинных классов с размерностью `(n_samples,)`.
 
-    nearest_idxs = np.argmin(classes_distances, axis=-1)
-    gt_idxs = np.tile(np.arange(n_classes)[:, None], (1, n_samples))
-    accuracy_per_class = np.sum(nearest_idxs == gt_idxs, axis=-1) / n_samples
-    return nearest_idxs, accuracy_per_class
+    Returns
+    -------
+    float
+        Значение точности от 0.0 до 1.0.
+    """    
+    n_samples = predicts.shape[0]
+    return np.sum(predicts == ground_truth) / n_samples
