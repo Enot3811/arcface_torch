@@ -100,12 +100,10 @@ def angular_many2many(
                          f'однако получено {metric}')
     n = v1.shape[0]
     k = v2.shape[0]
-    cosines = np.empty((n, k))
+    angles = np.empty((n, k))
     for i in range(n):
-        cosines[i] = angular_one2many(v1[i], v2)
-    # Избавляемся от погрешности
-    cosines = np.clip(cosines, -1.0, 1.0)
-    return np.arccos(cosines) * transf_coef
+        angles[i] = angular_one2many(v1[i], v2, metric)
+    return angles
 
 
 def classify_samples(
