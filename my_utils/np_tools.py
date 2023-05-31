@@ -108,35 +108,6 @@ def angular_many2many(
     return np.arccos(cosines) * transf_coef
 
 
-def mean_angular_distances(
-    embeddings: np.ndarray, centroids: np.ndarray
-) -> np.ndarray:
-    """
-    Вычислить среднее угловое расстояние между семплами класса и их центроидом.
-
-    Args:
-        embeddings (np.ndarray): Матрица embeddings с размерами
-        `(n_cls, n_cls_samples, embed_dim)`.
-        centroids (np.ndarray): Матрица с embeddings центроидов размерами
-        `(n_cls, embed_dim)`.
-
-    Returns:
-        np.ndarray: Среднее угловое расстояние для каждого класса размером
-        `(n_cls,)`
-    """
-    n_classes = embeddings.shape[0]
-    classes_distances = []
-    for cls in range(n_classes):
-        cls_centroid = centroids[cls]
-        cls_embeddings = embeddings[cls]
-        classes_distances.append(
-            angular_one2many(cls_centroid, cls_embeddings))
-
-    classes_distances = np.stack(classes_distances, axis=0)
-    mean_classes_distances = np.mean(classes_distances, axis=1)
-    return mean_classes_distances
-
-
 def classify_samples(
     embeddings: np.ndarray, centroids: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -146,19 +117,22 @@ def classify_samples(
     между векторами из `embeddings` и векторами центроидов из `centroids`.
     Ближайший центроид и представляет предсказанный класс.
 
-    Args:
-        embeddings (np.ndarray): Пакет embeddings векторов с размерами
-        `[n_samples, embed_dim]`.
-        centroids (np.ndarray): Центроиды классов с размерами
-        `[n_cls, embed_dim]`.
+    Parameters
+    ----------
+    embeddings : np.ndarray
+        Пакет embeddings векторов с размерами `[n_samples, embed_dim]`.
+    centroids : np.ndarray
+        Центроиды классов с размерами `[n_cls, embed_dim]`.
 
-    Returns:
-        Tuple[np.ndarray, np.ndarray]: Вектор с индексами предсказанных классов
-        размером `[n_samples,]`.
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray]
+        Вектор с индексами предсказанных классов размером `[n_samples,]`.
     """
     distances = angular_many2many(embeddings, centroids)
     indexes = np.argmin(distances, axis=1)
     return indexes
+
 
 def calculate_accuracy(
     predicts: np.ndarray,
