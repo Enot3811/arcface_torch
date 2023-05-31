@@ -12,8 +12,8 @@ import numpy as np
 
 import sys
 sys.path.append(str(Path(__file__).parents[1]))
-from my_utils.np_tools import (normalize, mean_angular_distances, 
-                               classify_samples)
+from my_utils.np_tools import (normalize, classify_samples, angular_many2many,
+                               calculate_accuracy)
 
 
 def main(**kwargs):
@@ -35,13 +35,23 @@ def main(**kwargs):
     dset_centroids = dset_emb.mean(axis=1)
     
     # Средние углы между семплами и их центроидами.
-    mean_angles = mean_angular_distances(test_emb, dset_centroids)
+    n_cls, n_samples, embed_dim = test_emb.shape
+    # Выпрямляем в (n_cls * n_samples, embed_dim) для классификации
+    angles = angular_many2many(test_emb.reshape(-1, embed_dim), dset_centroids)
+    angles = angles.reshape(n_cls, n_samples, n_cls)  # Разворачиваем обратно
+    mean_angles = np.mean(angles, axis=1)
     print('Angles:', mean_angles, sep='\n')
     print('Mean angle:', np.mean(mean_angles), sep='\n')
 
     # Делаем predict, получаем предсказанные классы и среднюю точность
-    predicted_cls, cls_accuracy = classify_samples(test_emb, dset_centroids)
-    print('Predicted classes', predicted_cls, sep='\n')
+    predict = classify_samples(test_emb.reshape(-1, embed_dim), dset_centroids)
+    predict = predict.reshape(n_cls, n_samples)
+    ground_truth = np.arange(n_cls)
+    ground_truth = np.tile(ground_truth, (n_samples, 1)).T
+    cls_accuracy = np.stack([calculate_accuracy(predict[i], ground_truth[i])
+                             for i in range(n_cls)])
+
+    print('Predicted classes', predict, sep='\n')
     print("Classes' accuracy", cls_accuracy, sep='\n')
     print('Mean accuracy', np.mean(cls_accuracy), sep='\n')
 
@@ -63,7 +73,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         'test_embeddings', type=Path,
         help='Путь к файлу с тестируемыми embeddings.')
-    args = parser.parse_args()
+    args = parser.parse_args([
+        '/home/pc0/projects/arcface/data/real_images_dataset/win500m_overlap500m_samples500_input224px/embeddings/dataset_embeddings.npy',
+        '/home/pc0/projects/arcface/data/real_images_dataset/win500m_overlap500m_samples500_input224px/embeddings/test_embeddings.npy'
+    ])
 
     for path in {args.dataset_embeddings, args.test_embeddings}:
         if not path.exists():
