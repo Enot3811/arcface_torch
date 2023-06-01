@@ -87,8 +87,7 @@ def parse_args() -> argparse.Namespace:
         argparse.Namespace: Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
-        description=('Протестировать модель. '
-                     'Посчитать метрики на основе выходных данных модели.'))
+        description=('Произвести классификацию указанных embeddings.'))
 
     parser.add_argument(
         'dataset_embeddings', type=Path,

@@ -59,7 +59,8 @@ def parse_args() -> argparse.Namespace:
         Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
-        description=('Создать embeddings из нарезанных окон.'))
+        description=('Создать embeddings из изображений в указанной директории'
+                     ' с помощью указанной модели.'))
 
     parser.add_argument(
         'cut_windows_path', type=Path,

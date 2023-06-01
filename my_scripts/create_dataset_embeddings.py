@@ -88,7 +88,8 @@ def parse_args() -> argparse.Namespace:
         Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
-        description=('Создать embeddings из датасета.'))
+        description=('Создать embeddings из датасета в указанной директории'
+                     ' с помощью указанной модели.'))
 
     parser.add_argument(
         'dataset_path', type=Path,

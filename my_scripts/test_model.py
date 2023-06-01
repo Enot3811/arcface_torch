@@ -1,5 +1,4 @@
-"""
-Скрипт для тестирования модели.
+"""Скрипт для тестирования модели.
 
 Тестирование проводится на основе сохранённых заранее npy файлов с embeddings.
 """
@@ -64,8 +63,8 @@ def parse_args() -> argparse.Namespace:
         argparse.Namespace: Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
-        description=('Протестировать модель. '
-                     'Посчитать метрики на основе выходных данных модели.'))
+        description=('Протестировать модель. Посчитать метрики на основе '
+                     'указанных embeddings.'))
 
     parser.add_argument(
         'dataset_embeddings', type=Path,

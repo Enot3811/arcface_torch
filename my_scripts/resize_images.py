@@ -1,4 +1,4 @@
-"""Скрипт для ресайза всех изображений в указанной директории."""
+"""Скрипт для изменения размеров всех изображений в указанной директории."""
 
 from pathlib import Path
 import argparse
@@ -30,7 +30,8 @@ def parse_args() -> argparse.Namespace:
         Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
-        description=('Создать embeddings из нарезанных окон.'))
+        description=('Изменить размеры изображений в указанной директории, '
+                     'сохранить результаты в заданную директорию.'))
 
     parser.add_argument(
         'img_dir', type=Path,
@@ -40,7 +41,7 @@ def parse_args() -> argparse.Namespace:
         help='Путь к директории для сохранения обработанных изображений.')
     parser.add_argument(
         'new_h_w', type=int, nargs=2,
-        help='Размеры для ресайза.')
+        help='Размеры для изменения размеров.')
     args = parser.parse_args()
 
     if not args.img_dir.exists():

@@ -29,8 +29,8 @@ def parse_args() -> argparse.Namespace:
         argparse.Namespace: Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
-        description=('Протестировать модель. '
-                     'Посчитать метрики на основе выходных данных модели.'))
+        description=('Создать таблицу вида cls_name: int_idx для соотношения '
+                     'имён классов и их индексов.'))
 
     parser.add_argument(
         'dataset_dir', type=Path,

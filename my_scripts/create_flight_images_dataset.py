@@ -124,8 +124,8 @@ def parse_args() -> argparse.Namespace:
         Полученные аргументы.
     """
     parser = argparse.ArgumentParser(
-        description=('Создание датасета из снимка ортофотоплана.'
-                     'Подробное описание в файле скрипта.'))
+        description=('Создать датасет из снимков в указанной директории, '
+                     'где каждый снимок будет представлять отдельный класс.'))
 
     parser.add_argument(
         'source_dir_path', type=Path,
