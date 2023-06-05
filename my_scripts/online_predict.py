@@ -12,6 +12,7 @@ import time
 
 import numpy as np
 import torch
+import cv2
 
 import sys
 sys.path.append(str(Path(__file__).parents[1]))
@@ -27,6 +28,7 @@ def main(**kwargs):
     embeddings_pth: Path = kwargs['embeddings']
     file_ext: str = kwargs['files_extension']
     show_time: bool = kwargs['time_info']
+    cls_img_dir: Path = kwargs['cls_images']
     
     # (n_cls, n_samples, embed), или (n_cls, 1, embed), или (n_cls, embed)
     embeddings: np.ndarray = np.load(embeddings_pth)
@@ -57,6 +59,8 @@ def main(**kwargs):
                 if file_ext == 'npy':
                     img = np.load(pth)
                 else:
+                    #TODO иногда выскакивает ошибка чтения
+                    # Перезапуск помогает, но стоит разобраться
                     img = read_image(pth)
                 model_input = preprocess_model_input(img)
                 output: torch.Tensor = model(model_input)  # (1, embed_dim)
@@ -67,6 +71,12 @@ def main(**kwargs):
                 if show_time:
                     end = time.time() - start
                     print('{:.2f} секунд'.format(end))
+                if cls_img_dir is not None:
+                    cls_img = cv2.imread(
+                        str(cls_img_dir / f's{predicted_cls}.jpg'))
+                    cv2.imshow('predicted cls', cls_img)
+                    if cv2.waitKey(10) == 27:  # Клавиша Esc
+                        break
 
 
 def parse_args() -> argparse.Namespace:
@@ -96,6 +106,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         '--time_info', action='store_true',
         help='Отображать время, затрачиваемое на обработку изображения.')
+    parser.add_argument(
+        '--cls_images', type=Path, default=None,
+        help=('Директория с изображениями предсказываемых классов. '
+              'Если указана, то будет отображаться изображение '
+              'предсказанного класса.'))
     args = parser.parse_args()
 
     if not args.input_dir.exists():
