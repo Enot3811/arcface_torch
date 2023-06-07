@@ -17,6 +17,7 @@ sys.path.append(str(Path(__file__).parents[1]))
 from my_utils.np_tools import normalize, angular_many2many
 from my_utils.model_tools import load_model, preprocess_model_input
 from my_utils.image_tools import read_image
+from my_utils.grid_tools import ClassesGrid
 
 
 def main(**kwargs):
@@ -28,6 +29,8 @@ def main(**kwargs):
     cls_dir = kwargs['classes_images']
     n_nearest = kwargs['n_nearest']
     image_ext = kwargs['image_ext']
+    step = kwargs['step_px']
+    source_map_pth = kwargs['map_path']
     
     # Пути к классифицируемым изображениям
     images_paths: List[Path] = list(image_dir.glob('*'))
@@ -61,6 +64,10 @@ def main(**kwargs):
         cls_img_paths = list(
             sorted(cls_img_paths, key=lambda path: int(path.name[0:-4])))
 
+    if source_map_pth is not None:
+        source_map = read_image(source_map_pth)
+        cls_grid = ClassesGrid(*source_map.shape[:2], step)
+
     # Классификация
     with torch.no_grad():
         model = load_model(model_name, model_path)
@@ -88,9 +95,13 @@ def main(**kwargs):
                 for j, name in enumerate(names):
                     cls_img = read_image(cls_dir / (name + '.' + image_ext))
                     axes[j + 1].imshow(cls_img)
-                plt.show()
 
-            
+            if source_map_pth is not None:
+                map_selected = cls_grid.show_selected_reg(source_map, nearest[0])
+                fig, ax = plt.subplots(1, 1, figsize=(20, 20))
+                ax.imshow(map_selected)
+
+            plt.show()
 
 
 def parse_args() -> argparse.Namespace:
@@ -133,6 +144,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         '--image_ext', type=str, default='jpg', choices=['jpg', 'png'],
         help='Расширение изображений. По умолчанию jpg.')
+    parser.add_argument(
+        '--map_path', type=Path, default=None,
+        help=('Путь до изображения карты. Если указан, то классифицированный '
+              'регион будет отображаться на карте.'))
+    parser.add_argument(
+        '--step_px', type=int, default=224,
+        help=('Шаг окна в пикселях. '
+              'По умолчанию равен 224, то есть без перекрытия.'))
     args = parser.parse_args()
 
     if not args.model_path.exists():
