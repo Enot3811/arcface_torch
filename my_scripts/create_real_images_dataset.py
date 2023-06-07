@@ -108,7 +108,7 @@ def main(**kwargs):
     with torch.no_grad():
         device = (torch.device('cuda') if torch.cuda.is_available()
                   else torch.device('cpu'))
-        augmentations = get_augmentation(color_jitter=True, elastic=True)
+        augmentations = get_augmentation(True, True, True, True, True)
 
         # Отобразить порезанные окна
         # Чтобы корректно работало, необходимо резать без перекрытия

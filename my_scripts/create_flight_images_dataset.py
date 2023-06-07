@@ -81,7 +81,7 @@ def main(**kwargs):
             device: torch.device = torch.device(device)
         print(f'Using {device} for dataset creating.')
 
-        augmentations = get_augmentation(color_jitter=True, elastic=True)
+        augmentations = get_augmentation()
 
         # Генерируем выборки
         for num_samples, directory in zip((train_samples, test_samples),

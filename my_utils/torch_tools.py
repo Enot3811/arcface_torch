@@ -3,19 +3,29 @@ import torchvision.transforms as transforms
 import numpy as np
 
 
-def get_augmentation(color_jitter: bool, elastic: bool):
+def get_augmentation(
+    color_jitter: bool = True,
+    blur: bool = True,
+    random_crop: bool = True,
+    random_perspective: bool = True,
+    random_rotate: bool = True
+) -> transforms.Compose:
     transf = []
     if color_jitter:
         transf.append(
-            transforms.ColorJitter(brightness=(0.5, 1.5), contrast=(0.6, 1.4),
-                                   saturation=(0.7, 1.3), hue=0.2))
-    if elastic:
+            transforms.ColorJitter(brightness=(0.6, 1.4), contrast=(0.5, 1.5),
+                                   saturation=(0.7, 1.3), hue=0.05))
+    if blur:
         transf.append(transforms.RandomApply(
-            transforms=[transforms.ElasticTransform(alpha=10.0)], p=0.1))
-    
-    transf.append(transforms.RandomPerspective(p=0.8))
-    transf.append(transforms.RandomApply(
-        transforms=[transforms.RandomRotation((0, 180))], p=0.8))
+            transforms=[transforms.GaussianBlur(kernel_size=3)], p=0.2))
+    if random_perspective:
+        transf.append(transforms.RandomPerspective(p=0.2))
+    if random_rotate:
+        transf.append(transforms.RandomApply(
+            transforms=[transforms.RandomRotation((0, 180))], p=0.8))
+    if random_crop:
+        transf.append(transforms.RandomResizedCrop(
+            (224, 224), (0.5, 1.0), ratio=(0.7, 1.0), antialias=True))
             
     return transforms.Compose(transf)
 
