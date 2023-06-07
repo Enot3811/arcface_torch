@@ -105,7 +105,7 @@ def parse_args() -> argparse.Namespace:
         help='Название модели.')
     parser.add_argument(
         '--batch_size', type=int, default=32,
-        help='Размер батча, отправляемого в сеть.')
+        help='Размер батча, отправляемого в сеть. По умолчанию равно 32.')
     parser.add_argument(
         '--mean', action='store_true',
         help='Усреднить embeddings перед записью.')
@@ -115,9 +115,11 @@ def parse_args() -> argparse.Namespace:
               'auto выбирает cuda по возможности.'))
     parser.add_argument(
         '--num_samples', type=int, default=-1,
-        help=('Количество отбираемых семплов на класс. По умолчанию равен -1,'
-              ' что означает взятие всех имеющихся семплов. '
-              'Число должно быть кратно размеру батча batch_size.'))
+        help=('Количество отбираемых семплов на класс. По умолчанию равен -1, '
+              'что означает взятие всех имеющихся семплов. '
+              'Число должно быть кратно размеру батча batch_size, в противном '
+              'случае количество семплов будет округляться в большую сторону '
+              'к числу, кратному batch_size.'))
     args = parser.parse_args()
 
     if not args.dataset_path.exists():
