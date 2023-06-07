@@ -8,7 +8,8 @@ def get_augmentation(
     blur: bool = True,
     random_crop: bool = True,
     random_perspective: bool = True,
-    random_rotate: bool = True
+    random_rotate: bool = True,
+    augmix: bool = True
 ) -> transforms.Compose:
     transf = []
     if color_jitter:
@@ -21,11 +22,12 @@ def get_augmentation(
     if random_perspective:
         transf.append(transforms.RandomPerspective(p=0.2))
     if random_rotate:
-        transf.append(transforms.RandomApply(
-            transforms=[transforms.RandomRotation((0, 180))], p=0.8))
+        transf.append(transforms.RandomRotation((0, 180)))
     if random_crop:
         transf.append(transforms.RandomResizedCrop(
             (224, 224), (0.5, 1.0), ratio=(0.7, 1.0), antialias=True))
+    if augmix:
+        transf.append(transforms.AugMix(severity=1))
             
     return transforms.Compose(transf)
 
