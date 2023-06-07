@@ -128,7 +128,7 @@ def resize_image(
         The resized image.
     """
     return cv2.resize(
-        image, new_size, None, None, None, interpolation=interpolation)
+        image, new_size[::-1], None, None, None, interpolation=interpolation)
 
 
 def get_sliding_windows(
