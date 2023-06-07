@@ -78,6 +78,7 @@ def main(**kwargs):
         print('Директория для сохранения датасета не указана. '
               'Датасет будет сохранён в следующей директории:\n'
               f'"{dataset_path}"\n')
+    dataset_path.mkdir(parents=True, exist_ok=True)
 
     img = read_image(img_path)
     if raw:
@@ -97,6 +98,7 @@ def main(**kwargs):
           f'Перекрывающий шаг: {scaled_overlap_px} px', sep='\n')
 
     img = resize_image(img, (w, h))
+    save_image(img, dataset_path / 'resized_map.jpg')
 
     windows = get_sliding_windows(
         img, new_fov, new_fov, scaled_overlap_px)
