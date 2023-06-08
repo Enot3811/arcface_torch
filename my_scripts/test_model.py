@@ -11,8 +11,7 @@ import numpy as np
 
 import sys
 sys.path.append(str(Path(__file__).parents[1]))
-from my_utils.np_tools import (normalize, classify_samples, angular_many2many,
-                               calculate_accuracy)
+from my_utils.np_tools import normalize, angular_many2many, calculate_accuracy
 
 
 def main(**kwargs):
@@ -21,6 +20,8 @@ def main(**kwargs):
 
     dset_emb: np.ndarray = np.load(dset_emb_path)  # (n_cls, n_samples, embed)
     test_emb: np.ndarray = np.load(test_emb_path)
+    print('Проверочные embeddings:', dset_emb.shape)
+    print('Проверяемые embeddings:', test_emb.shape)
 
     # Если проверяется на датасете, у которого 1 семпл - 1 класс
     if len(test_emb.shape) == 2:
@@ -37,20 +38,19 @@ def main(**kwargs):
     n_cls, n_samples, embed_dim = test_emb.shape
     # Выпрямляем в (n_cls * n_samples, embed_dim) для классификации
     angles = angular_many2many(test_emb.reshape(-1, embed_dim), dset_centroids)
+    predicts = np.argmin(angles, axis=1)
     angles = angles.reshape(n_cls, n_samples, n_cls)  # Разворачиваем обратно
     mean_angles = np.mean(angles, axis=1)
     print('Angles:', mean_angles, sep='\n')
     print('Mean angle:', np.mean(mean_angles), sep='\n')
 
-    # Делаем predict, получаем предсказанные классы и среднюю точность
-    predict = classify_samples(test_emb.reshape(-1, embed_dim), dset_centroids)
-    predict = predict.reshape(n_cls, n_samples)
+    predicts = predicts.reshape(n_cls, n_samples)
     ground_truth = np.arange(n_cls)
     ground_truth = np.tile(ground_truth, (n_samples, 1)).T
-    cls_accuracy = np.stack([calculate_accuracy(predict[i], ground_truth[i])
+    cls_accuracy = np.stack([calculate_accuracy(predicts[i], ground_truth[i])
                              for i in range(n_cls)])
 
-    print('Predicted classes', predict, sep='\n')
+    print('Predicted classes', predicts, sep='\n')
     print("Classes' accuracy", cls_accuracy, sep='\n')
     print('Mean accuracy', np.mean(cls_accuracy), sep='\n')
 
