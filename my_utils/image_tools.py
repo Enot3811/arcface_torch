@@ -163,11 +163,11 @@ def get_sliding_windows(
 
     x_indexer = (
         np.expand_dims(np.arange(w_win), 0) +
-        np.expand_dims(np.arange(w - w_win - 1, step=stride), 0).T
+        np.expand_dims(np.arange(w - w_win, step=stride), 0).T
     )
     y_indexer = (
         np.expand_dims(np.arange(h_win), 0) +
-        np.expand_dims(np.arange(h - h_win - 1, step=stride), 0).T
+        np.expand_dims(np.arange(h - h_win, step=stride), 0).T
     )
     windows = source_image[y_indexer][:, :, x_indexer].swapaxes(1, 2)
     return windows
