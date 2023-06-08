@@ -72,10 +72,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         'test_embeddings', type=Path,
         help='Путь к файлу с тестируемыми embeddings.')
-    args = parser.parse_args([
-        '/home/pc0/projects/arcface/data/real_images_dataset/win500m_overlap500m_samples500_input224px/embeddings/dataset_embeddings.npy',
-        '/home/pc0/projects/arcface/data/real_images_dataset/win500m_overlap500m_samples500_input224px/embeddings/test_embeddings.npy'
-    ])
+    args = parser.parse_args()
 
     for path in {args.dataset_embeddings, args.test_embeddings}:
         if not path.exists():
