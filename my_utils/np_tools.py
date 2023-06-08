@@ -91,11 +91,7 @@ def angular_many2many(
     ValueError
         Значение metric должно быть либо "rad", либо "deg".
     """
-    if metric == 'rad':
-        transf_coef = 1.0
-    elif metric == 'deg':
-        transf_coef = 180.0 / np.pi
-    else:
+    if metric not in {'rad', 'deg'}:
         raise ValueError('Значение metric должно быть либо "rad", либо "deg", '
                          f'однако получено {metric}')
     n = v1.shape[0]
