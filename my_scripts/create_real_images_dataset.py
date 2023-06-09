@@ -97,7 +97,7 @@ def main(**kwargs):
           f'Масштаб: {new_scale} м/px', f'Поле зрения: {new_fov} px',
           f'Перекрывающий шаг: {scaled_overlap_px} px', sep='\n')
 
-    img = resize_image(img, (w, h))
+    img = resize_image(img, (h, w))
 
     windows = get_sliding_windows(
         img, new_fov, new_fov, scaled_overlap_px)
