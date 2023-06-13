@@ -99,9 +99,9 @@ def get_scaled_shape(
     new_scale = orig_scale * resize_coef
 
     # Отмасштабированный шаг перекрывающего окна в пикселях
-    scaled_overlap_px = int(overlap_step / new_scale)  # 16 пикселей для 30 метров
+    scaled_overlap_px = int(overlap_step / new_scale)
     # Новые размеры изображения
-    h = int(orig_h / resize_coef)  # 
+    h = int(orig_h / resize_coef)
     w = int(orig_w / resize_coef)
     return h, w, scaled_overlap_px, new_scale
 
@@ -201,22 +201,24 @@ def process_raw_real_image(
     angle: float = 32.0,
     white_space: float = 0.15
 ) -> np.ndarray:
-    """Rotate the given image and cut white space.
+    """Повернуть изображение и обрезать белые край.
 
-    Given real images are rotated by angle about 32 degrees, and have white
-    empty space around image. This function can process the given image to a
-    normal view.
+    Исходное изображение повёрнуто на угол около 32 градусов и имеет белое
+    пустое пространство по краям. Данная функция преобразует изображение к
+    нормальному виду.
 
     Parameters
     ----------
-    image : np.ndarray): The image to process.
+    image : np.ndarray:
+        Исходное изображение для обработки.
     angle : float, optional
-        The angle of rotating.
-    white_space (Optional[float], optional): A percent of white space.
+        Угол поворота. По умолчанию 32.
+    white_space : float, optional
+        Доля белого пространства в размерах после поворота. По умолчанию 0.15.
 
     Returns
     -------
-        np.ndarray: The processed image.
+        np.ndarray: Обработанное изображение.
     """
     image = image.copy()
     h, w, _ = image.shape
