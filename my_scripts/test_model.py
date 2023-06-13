@@ -17,6 +17,7 @@ from my_utils.np_tools import normalize, angular_many2many, calculate_accuracy
 def main(**kwargs):
     dset_emb_path = kwargs['dataset_embeddings']
     test_emb_path = kwargs['test_embeddings']
+    show_progress = kwargs['show_progress']
 
     dset_emb: np.ndarray = np.load(dset_emb_path)  # (n_cls, n_samples, embed)
     test_emb: np.ndarray = np.load(test_emb_path)
@@ -37,7 +38,9 @@ def main(**kwargs):
     # Средние углы между семплами и их центроидами.
     n_cls, n_samples, embed_dim = test_emb.shape
     # Выпрямляем в (n_cls * n_samples, embed_dim) для классификации
-    angles = angular_many2many(test_emb.reshape(-1, embed_dim), dset_centroids)
+    angles = angular_many2many(
+        test_emb.reshape(-1, embed_dim), dset_centroids,
+        show_progress=show_progress)
     predicts = np.argmin(angles, axis=1)
     angles = angles.reshape(n_cls, n_samples, n_cls)  # Разворачиваем обратно
     mean_angles = np.mean(angles, axis=1)
@@ -72,6 +75,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         'test_embeddings', type=Path,
         help='Путь к файлу с тестируемыми embeddings.')
+    parser.add_argument(
+        '--show_progress', action='store_true',
+        help='Отображать процесс вычислений.')
     args = parser.parse_args()
 
     for path in {args.dataset_embeddings, args.test_embeddings}:

@@ -3,6 +3,7 @@
 from typing import Tuple
 
 import numpy as np
+from tqdm import tqdm
 
 def normalize(arr: np.ndarray) -> np.ndarray:
     """
@@ -65,7 +66,8 @@ def angular_one2many(
 def angular_many2many(
     v1: np.ndarray,
     v2: np.ndarray,
-    metric: str = 'deg'
+    metric: str = 'deg',
+    show_progress: bool = False
 ) -> np.ndarray:
     """Вычислить углы в радианах между пакетами векторов `v1` и `v2`.
 
@@ -78,6 +80,8 @@ def angular_many2many(
     metric : str, optional
         Метрика измерения угла. Принимает "rad" для радианов и "deg" для
         градусов. По умолчанию равняется "deg".
+    show_progress : bool, optional
+        Отображать прогресс вычислений. По умолчанию - `False`.
 
     Returns
     -------
@@ -97,7 +101,12 @@ def angular_many2many(
     n = v1.shape[0]
     k = v2.shape[0]
     angles = np.empty((n, k))
-    for i in range(n):
+    if show_progress:
+        desc = 'Вычисление угловых расстояний'
+        iterator = tqdm(range(n), desc=desc)
+    else:
+        iterator = range(n)
+    for i in iterator:
         angles[i] = angular_one2many(v1[i], v2, metric)
     return angles
 
