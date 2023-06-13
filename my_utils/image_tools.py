@@ -321,3 +321,38 @@ def overlay_images(
 
     overlay_img = cv2.addWeighted(img1, 0.5, img2, 0.5, 0.0)
     return overlay_img
+
+
+def draw_windows_grid(
+    image: np.ndarray, win_size: int, stride: int,
+    color: Tuple[int, int, int] = (255, 0, 0),
+    thickness: int = 1
+) -> np.ndarray:
+    """Нарисовать сетку из перекрывающих окон на изображении.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        Исходное изображение.
+    win_size : int
+        Размер окна.
+    stride : int
+        Шаг окна.
+    color : Tuple[int, int, int], optional
+        Цвет рисуемых рамок. По умолчанию - красный.
+    thickness : int, optional
+        Толщина рисуемых рамок. По умолчанию - 1.
+
+    Returns
+    -------
+    np.ndarray
+        Отредактированная картинка.
+    """
+    image = image.copy()  # Копировать изображение, чтобы не испортить исходник
+    h, w = image.shape[:2]
+    for i in range(0, h, stride):
+        for j in range(0, w, stride):
+            image = cv2.rectangle(
+                image, (j, i), (j + win_size, i + win_size),
+                color, thickness)
+    return image
