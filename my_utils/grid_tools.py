@@ -170,7 +170,7 @@ class Colormap:
         min_value: float,
         max_value: float,
         accuracy: int = 2,
-        colormap: str = 'Greys'
+        colormap: str = 'Greys_r'
     ) -> None:
         """Инициализация colormap.
 
@@ -184,9 +184,14 @@ class Colormap:
             Количество знаков после запятой у числе в colormap.
             По умолчанию равно двум.
         colormap : str, optional
-           Название цветовой палитры из seaborn. По умолчанию "Greys".
+           Название цветовой палитры из seaborn. По умолчанию "Greys_r".
         """
         self.accuracy = accuracy
+
+        # Словари плохо работают с float ключами, потому было решено float
+        # значения конвертировать в int
+        # Для внешнего использования ничего не меняется
+
         self.mult = 10 ** accuracy  # Множитель для перехода из float в int
         color_numbers = np.arange(
             min_value * self.mult, max_value * self.mult + 1, dtype=np.int32)
@@ -194,15 +199,15 @@ class Colormap:
         self.colormap = sns.color_palette(colormap, num_colors)
         # Словарь с числом float домноженным на mult и конвертированным в int,
         # под которым хранится соответствующий цвет
-        self.color_dict = {num: color
-                           for num, color in zip(color_numbers, self.colormap)}
+        self.color_dict: Dict[int, Tuple[float, float, float]] = {
+            num: color for num, color in zip(color_numbers, self.colormap)}
         
-    def __getitem__(self, idx: float) -> Tuple[float, float, float]:
+    def __getitem__(self, value: float) -> Tuple[float, float, float]:
         """Взять цвет для числа.
 
         Parameters
         ----------
-        idx : float
+        value : float
             Число для которого необходимо взять цвет.
 
         Returns
@@ -210,4 +215,4 @@ class Colormap:
         Tuple[float, float, float]
             RGB цвет с распределением от 0.0 до 1.0.
         """
-        return self.color_dict[int(np.round(idx, self.accuracy) * self.mult)]
+        return self.color_dict[int(np.round(value, self.accuracy) * self.mult)]
