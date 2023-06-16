@@ -216,3 +216,19 @@ class Colormap:
             RGB цвет с распределением от 0.0 до 1.0.
         """
         return self.color_dict[int(np.round(value, self.accuracy) * self.mult)]
+    
+    def __contains__(self, value: float) -> bool:
+        """Проверить, есть ли цвет для заданного числа.
+
+        Parameters
+        ----------
+        value : float
+            Число для которого необходимо проверить цвет.
+
+        Returns
+        -------
+        bool
+            Существует ли цвет для числа.
+        """        
+        return (int(np.round(value, self.accuracy) * self.mult)
+                in self.color_dict)
