@@ -1,13 +1,14 @@
 """Модуль с инструментами для работы с сеткой классов."""
 
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
 from pathlib import Path
 import sys
 
 import numpy as np
 import cv2
 import seaborn as sns
+from tqdm import tqdm
 
 sys.path.append(str(Path(__file__).parents[1]))
 from my_utils.image_tools import resize_image
@@ -232,3 +233,89 @@ class Colormap:
         """        
         return (int(np.round(value, self.accuracy) * self.mult)
                 in self.color_dict)
+
+
+def create_overlapping_heatmap(
+    metric: np.ndarray,
+    map_size: Tuple[int, int],
+    win_size: Union[Tuple[int, int], int],
+    step: int,
+    color_pallet: Colormap,
+    show_progress: bool = False
+) -> np.ndarray:
+    """Создать изображение с тепловой картой для перекрывающихся окон.
+
+    Карта строится попиксельно. Каждый пиксель учитывает влияние цвета
+    всех окон, внутри которых он оказался.
+
+    Parameters
+    ----------
+    metric : np.ndarray
+        Массив со значениями метрик, по которым строится тепловая карта.
+        Размерность - `[n_metrics,]`
+    map_size : Tuple[int, int]
+        Размер исходной карты в пикселях.
+        Тепловая карта будет иметь тот же размер.
+    win_size : Union[Tuple[int, int], int]
+        Размеры окон в пикселях.
+        Можно передать кортеж с размерами высоты и ширины,
+        или одно число - размер для всех сторон.
+    step : int
+        Шаг перекрывающих окон в пикселях.
+    color_pallet : Colormap
+        Объект Colormap с цветами для тепловой карты.
+    show_progress : bool, optional
+        Отображать прогресс создания тепловой карты. По умолчанию `False`.
+
+    Returns
+    -------
+    np.ndarray
+        Изображение тепловой карты с размерами идентичными
+        исходной карте региона.
+    """
+    map_h, map_w = map_size
+    if isinstance(win_size, tuple):
+        win_h, win_w = win_size
+    else:
+        win_h = win_size
+        win_w = win_size
+    # Создание маск для окон
+    masks = []
+    for cur_h in range(0, map_h - win_h, step):
+        for cur_w in range(0, map_w - win_w, step):
+            masks.append(
+                (slice(cur_h, cur_h + win_h), slice(cur_w, cur_w + win_w)))
+    # Создание heatmap
+    num_contributors = np.zeros((map_h, map_w))
+    values = np.zeros((map_h, map_w))
+
+    for i in range(len(masks)):
+        values[masks[i]] += metric[i]
+        num_contributors[masks[i]] += 1
+
+    empty_region = num_contributors == 0
+    min_value = min(color_pallet.color_dict.keys())
+    values[empty_region] = min_value
+
+    # Необходимо разделить полученную сумму цветов
+    # на количество повлиявших на него окон.
+    # Пиксели, которые не попали ни в одно из окон,
+    # имеют 0 влияющих окон и цвет 0.
+    # Чтобы избежать деление на 0, 0 меняется на 1,
+    # что никак не влияет на цвет.
+
+    num_contributors[num_contributors == 0] = 1
+    values /= num_contributors
+
+    heatmap = np.zeros((map_h, map_w, 3))
+    if show_progress:
+        desc = 'Создание тепловой карты'
+        iterator = tqdm(range(map_h), desc=desc)
+    else:
+        iterator = range(map_h)
+    import matplotlib.pyplot as plt
+    plt.imshow(values)
+    for i in iterator:
+        for j in range(map_w):
+            heatmap[i, j] = color_pallet[values[i, j]]
+    return heatmap
