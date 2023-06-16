@@ -6,18 +6,24 @@
 
 import argparse
 from pathlib import Path
+from typing import Tuple, Optional
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 import sys
 sys.path.append(str(Path(__file__).parents[1]))
 from my_utils.np_tools import normalize, angular_many2many, calculate_accuracy
+from my_utils.grid_tools import create_overlapping_heatmap, Colormap
 
 
 def main(**kwargs):
-    dset_emb_path = kwargs['dataset_embeddings']
-    test_emb_path = kwargs['test_embeddings']
-    show_progress = kwargs['show_progress']
+    dset_emb_path: Path = kwargs['dataset_embeddings']
+    test_emb_path: Path = kwargs['test_embeddings']
+    show_progress: bool = kwargs['show_calc_progress']
+    map_size: Optional[Tuple[int, int]] = kwargs['map_h_w']
+    step: Optional[int] = kwargs['step']
+    win_size: Optional[int] = kwargs['win_size']
 
     dset_emb: np.ndarray = np.load(dset_emb_path)  # (n_cls, n_samples, embed)
     test_emb: np.ndarray = np.load(test_emb_path)
@@ -57,6 +63,16 @@ def main(**kwargs):
     print("Classes' accuracy", cls_accuracy, sep='\n')
     print('Mean accuracy', np.mean(cls_accuracy), sep='\n')
 
+    # Построение тепловой карты из классовой точности
+    if map_size is not None and step is not None and win_size is not None:
+        min_acc = 0.0
+        max_acc = 1.0
+        color_pallet = Colormap(min_acc, max_acc, colormap='Greys_r')
+        heatmap = create_overlapping_heatmap(cls_accuracy, map_size, win_size,
+                                             step, color_pallet, show_progress)
+        plt.imshow(heatmap)
+        plt.show()
+
 
 def parse_args() -> argparse.Namespace:
     """
@@ -76,8 +92,25 @@ def parse_args() -> argparse.Namespace:
         'test_embeddings', type=Path,
         help='Путь к файлу с тестируемыми embeddings.')
     parser.add_argument(
-        '--show_progress', action='store_true',
+        '--show_calc_progress', action='store_true',
         help='Отображать процесс вычислений.')
+    
+    heatmap_group = parser.add_argument_group(
+        title='Настройки тепловой карты',
+        description=('Параметры для создания тепловой карты '
+                     'из получаемой классовой точности. '
+                     'Если не передан хотя бы один из параметров, '
+                     'то тепловая карта не будет строиться.'))
+    heatmap_group.add_argument(
+        '--map_h_w', type=int, nargs=2, default=None,
+        help='Высота и ширина карты.')
+    heatmap_group.add_argument(
+        '--step', type=int, default=None,
+        help='Размер шага окна в пикселях.')
+    heatmap_group.add_argument(
+        '--win_size', type=int, default=None,
+        help='Размер окна в пикселях.')
+
     args = parser.parse_args()
 
     for path in {args.dataset_embeddings, args.test_embeddings}:
