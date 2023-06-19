@@ -85,31 +85,41 @@ def main(**kwargs):
         img = process_raw_real_image(img)  # Крутим и отрезаем белые края
     h_orig, w_orig = img.shape[:2]
 
-    print('Исходное изображение:', f'Размеры: {h_orig}, {w_orig}',
-          f'Масштаб: {orig_scale} м/px', f'Поле зрения: {fov} м',
-          f'Перекрывающий шаг: {overlap} м', sep='\n')
+    source_info = (
+        'Исходное изображение:\n'
+        f'Размеры: {h_orig}, {w_orig}\n'
+        f'Масштаб: {orig_scale} м/px\n'
+        f'Поле зрения: {fov} м\n'
+        f'Перекрывающий шаг: {overlap} м\n\n')
+    print(source_info)
     
     h, w, scaled_overlap_px, new_scale = get_scaled_shape(
         h_orig, w_orig, orig_scale, overlap, fov, net_input_size)
     new_fov = net_input_size
     
-    print('\nОбработанное изображение:', f'Размеры: {h}, {w}',
-          f'Масштаб: {new_scale} м/px', f'Поле зрения: {new_fov} px',
-          f'Перекрывающий шаг: {scaled_overlap_px} px', sep='\n')
+    processed_info = (
+        'Обработанное изображение:\n'
+        f'Размеры: {h}, {w}\n'
+        f'Масштаб: {new_scale} м/px\n'
+        f'Поле зрения: {new_fov} px\n'
+        f'Перекрывающий шаг: {scaled_overlap_px} px\n\n')
+    print(processed_info)
 
     img = resize_image(img, (h, w))
 
     windows = get_sliding_windows(
         img, new_fov, new_fov, scaled_overlap_px)
     
-    print('Порезанные окна:', windows.shape)
+    windows_info = f'Порезанные окна: {windows.shape}\n'
+    print(windows_info)
     windows = windows.reshape(-1, new_fov, new_fov, windows.shape[-1])
-    print('Количество классов:', windows.shape[0])
+    cls_info = f'Количество классов: {windows.shape[0]}\n'
+    print(cls_info)
 
     with torch.no_grad():
         device = (torch.device('cuda') if torch.cuda.is_available()
                   else torch.device('cpu'))
-        augmentations = get_augmentation(True, True, True, True, True)
+        # Настройка аугментации
 
         # Отобразить порезанные окна
         # Чтобы корректно работало, необходимо резать без перекрытия
@@ -123,10 +133,14 @@ def main(**kwargs):
                 show_grid(augmented_windows, n_h_win, n_w_win)
                 plt.show()
 
-        # Сохраняем порезанные окна без аугментаций
+        # Сохраняем порезанные окна без аугментаций и информацию о датасете
         if train_samples > 0 or test_samples > 0:
             dataset_path.mkdir(parents=True, exist_ok=True)
             save_image(img, dataset_path / 'resized_map.jpg')
+
+            with open(dataset_path / 'info.txt', 'w') as f:
+                f.writelines([
+                    source_info, processed_info, windows_info, cls_info])
 
             print(f'\nUsing {device} for dataset creating.')
             cut_image_path = dataset_path / 'cut_image'
