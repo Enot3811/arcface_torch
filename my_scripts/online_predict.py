@@ -141,6 +141,7 @@ def parse_args() -> argparse.Namespace:
         '--step_px', type=int, default=224,
         help=('Шаг окна в пикселях. '
               'По умолчанию равен 224, то есть без перекрытия.'))
+    args = parser.parse_args()
 
     if not args.input_dir.exists():
         raise FileNotFoundError(
