@@ -16,6 +16,7 @@ import sys
 sys.path.append(str(Path(__file__).parents[1]))
 from my_utils.np_tools import normalize, angular_many2many, calculate_accuracy
 from my_utils.grid_tools import create_overlapping_heatmap, Colormap
+from my_utils.image_tools import save_image
 
 
 def main(**kwargs):
@@ -25,6 +26,7 @@ def main(**kwargs):
     map_size: Optional[Tuple[int, int]] = kwargs['map_h_w']
     step: Optional[int] = kwargs['step']
     win_size: Optional[int] = kwargs['win_size']
+    show_heatmap: bool = kwargs['show_heatmap']
 
     dset_emb: np.ndarray = np.load(dset_emb_path)  # (n_cls, n_samples, embed)
     test_emb: np.ndarray = np.load(test_emb_path)
@@ -77,8 +79,13 @@ def main(**kwargs):
         color_pallet = Colormap(min_acc, max_acc, colormap='Greys_r')
         heatmap = create_overlapping_heatmap(cls_accuracy, map_size, win_size,
                                              step, color_pallet, show_progress)
-        plt.imshow(heatmap)
-        plt.show()
+
+        img_path = dset_emb_path.parents[1] / 'acc_heatmap.jpg'
+        save_image((heatmap * 255).astype(np.uint8), img_path)
+        if show_heatmap:
+            fig, ax = plt.subplots(1, 1)
+            ax.imshow(heatmap)
+            plt.show()
 
 
 def parse_args() -> argparse.Namespace:
@@ -90,7 +97,7 @@ def parse_args() -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(
         description=('Протестировать модель. Посчитать метрики на основе '
-                     'указанных embeddings.'))
+                     'указанных embeddings. Создать тепловую карту точности'))
 
     parser.add_argument(
         'dataset_embeddings', type=Path,
@@ -117,6 +124,9 @@ def parse_args() -> argparse.Namespace:
     heatmap_group.add_argument(
         '--win_size', type=int, default=None,
         help='Размер окна в пикселях.')
+    heatmap_group.add_argument(
+        '--show_heatmap', action='store_true',
+        help='отобразить изображение тепловой карты.')
 
     args = parser.parse_args()
 
