@@ -10,6 +10,7 @@ from typing import Tuple, Optional
 
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 import sys
 sys.path.append(str(Path(__file__).parents[1]))
@@ -41,19 +42,25 @@ def main(**kwargs):
     # Вычисляем центроиды классов датасета, с которыми будем сравниваться
     dset_centroids = dset_emb.mean(axis=1)
     
-    # Средние углы между семплами и их центроидами.
     n_cls, n_samples, embed_dim = test_emb.shape
-    # Выпрямляем в (n_cls * n_samples, embed_dim) для классификации
-    angles = angular_many2many(
-        test_emb.reshape(-1, embed_dim), dset_centroids,
-        show_progress=show_progress)
-    predicts = np.argmin(angles, axis=1)
-    angles = angles.reshape(n_cls, n_samples, n_cls)  # Разворачиваем обратно
-    mean_angles = np.mean(angles, axis=1)
+    # Средние углы от семплов i-го класса до всех центроидов
+    mean_angles = np.empty((n_cls, n_cls), dtype=np.float32)
+    # Предсказания для всех семплов в виде индексов классов
+    predicts = np.empty((n_cls, n_samples), np.int32)
+
+    iterator = range(n_cls)
+    if show_progress:
+        desc = 'Вычисление угловых расстояний'
+        iterator = tqdm(iterator, desc=desc)
+    for cls_idx in iterator:
+        # (n_samples, n_cls)
+        cls_angles = angular_many2many(test_emb[cls_idx], dset_centroids)
+        mean_angles[cls_idx] = cls_angles.mean(axis=0)  # (n_cls,)
+        predicts[cls_idx] = cls_angles.argmin(axis=1)  # (n_samples)
+
     print('Angles:', mean_angles, sep='\n')
     print('Mean angle:', np.mean(mean_angles), sep='\n')
 
-    predicts = predicts.reshape(n_cls, n_samples)
     ground_truth = np.arange(n_cls)
     ground_truth = np.tile(ground_truth, (n_samples, 1)).T
     cls_accuracy = np.stack([calculate_accuracy(predicts[i], ground_truth[i])
