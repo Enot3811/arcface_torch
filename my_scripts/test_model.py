@@ -27,6 +27,7 @@ def main(**kwargs):
     step: Optional[int] = kwargs['step']
     win_size: Optional[int] = kwargs['win_size']
     show_heatmap: bool = kwargs['show_heatmap']
+    save_results: bool = not kwargs['save_off']
 
     dset_emb: np.ndarray = np.load(dset_emb_path)  # (n_cls, n_samples, embed)
     test_emb: np.ndarray = np.load(test_emb_path)
@@ -66,10 +67,13 @@ def main(**kwargs):
     print('Angles:', mean_angles, sep='\n')
     mean_angle_total = np.mean(mean_angles)
     print('Mean angle:', mean_angle_total, sep='\n')
-    angles_path = dset_emb_path.parents[1] / f'{files_prefix}angles.txt'
-    np.savetxt(angles_path, mean_angles)
-    with open(angles_path, 'a') as f:
-        f.write(f'Mean angle: {mean_angle_total}')
+    if save_results:
+        files_prefix = (f'{dset_emb_path.name.split(".")[0]}_'
+                        f'{test_emb_path.name.split(".")[0]}_')
+        angles_path = dset_emb_path.parents[1] / f'{files_prefix}angles.txt'
+        np.savetxt(angles_path, mean_angles)
+        with open(angles_path, 'a') as f:
+            f.write(f'Mean angle: {mean_angle_total}')
     
 
     ground_truth = np.arange(n_cls)
@@ -81,12 +85,13 @@ def main(**kwargs):
     print("Classes' accuracy", cls_accuracy, sep='\n')
     mean_acc = np.mean(cls_accuracy)
     print('Mean accuracy', mean_acc, sep='\n')
-    predicts_path = dset_emb_path.parents[1] / f'{files_prefix}predicts.txt'
-    accuracy_path = dset_emb_path.parents[1] / f'{files_prefix}accuracy.txt'
-    np.savetxt(predicts_path, predicts)
-    np.savetxt(accuracy_path, cls_accuracy)
-    with open(accuracy_path, 'a') as f:
-        f.write(f'Mean accuracy: {mean_acc}')
+    if save_results:
+        predicts_path = dset_emb_path.parents[1] / f'{files_prefix}predicts.txt'
+        accuracy_path = dset_emb_path.parents[1] / f'{files_prefix}accuracy.txt'
+        np.savetxt(predicts_path, predicts)
+        np.savetxt(accuracy_path, cls_accuracy)
+        with open(accuracy_path, 'a') as f:
+            f.write(f'Mean accuracy: {mean_acc}')
 
     # Построение тепловой карты из классовой точности
     if map_size is not None and step is not None and win_size is not None:
@@ -143,6 +148,10 @@ def parse_args() -> argparse.Namespace:
     heatmap_group.add_argument(
         '--show_heatmap', action='store_true',
         help='отобразить изображение тепловой карты.')
+    parser.add_argument(
+    parser.add_argument(
+        '--save_off', action='store_false',
+        help='Не сохранять результаты в файлы.')
 
     args = parser.parse_args()
 
