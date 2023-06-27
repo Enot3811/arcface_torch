@@ -29,7 +29,7 @@ def main(**kwargs):
     win_size: Optional[int] = kwargs['win_size']
     show_heatmap: bool = kwargs['show_heatmap']
     device: str = kwargs['device']
-    save_results: bool = not kwargs['save_off']
+    save_results: bool = kwargs['save_off']
 
     dset_emb: np.ndarray = np.load(dset_emb_path)  # (n_cls, n_samples, embed)
     test_emb: np.ndarray = np.load(test_emb_path)
@@ -96,10 +96,8 @@ def main(**kwargs):
     if save_results:
         files_prefix = (f'{dset_emb_path.name.split(".")[0]}_'
                         f'{test_emb_path.name.split(".")[0]}_')
-        angles_path = dset_emb_path.parents[1] / f'{files_prefix}angles.txt'
-        np.savetxt(angles_path, mean_angles)
-        with open(angles_path, 'a') as f:
-            f.write(f'Mean angle: {mean_angle_total}')
+        angles_path = dset_emb_path.parents[1] / f'{files_prefix}angles.npy'
+        np.save(angles_path, mean_angles)
     
 
     ground_truth = np.arange(n_cls)
@@ -130,12 +128,15 @@ def main(**kwargs):
     mean_acc = np.mean(cls_accuracy)
     print('Mean accuracy', mean_acc, sep='\n')
     if save_results:
-        predicts_path = dset_emb_path.parents[1] / f'{files_prefix}predicts.txt'
-        accuracy_path = dset_emb_path.parents[1] / f'{files_prefix}accuracy.txt'
-        np.savetxt(predicts_path, predicts)
-        np.savetxt(accuracy_path, cls_accuracy)
-        with open(accuracy_path, 'a') as f:
-            f.write(f'Mean accuracy: {mean_acc}')
+        predicts_path = dset_emb_path.parents[1] / f'{files_prefix}predicts.npy'
+        accuracy_path = dset_emb_path.parents[1] / f'{files_prefix}accuracy.npy'
+        np.save(predicts_path, predicts)
+        np.save(accuracy_path, cls_accuracy)
+
+        mean_stats_path = dset_emb_path.parents[1] / f'{files_prefix}means.txt'
+        with open(mean_stats_path, 'w') as f:
+            f.write(f'Mean angle: {mean_angle_total}\n')
+            f.write(f'Mean accuracy: {mean_acc}\n')
 
     # Построение тепловой карты из классовой точности
     if map_size is not None and step is not None and win_size is not None:
