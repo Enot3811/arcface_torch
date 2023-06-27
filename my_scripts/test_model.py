@@ -11,6 +11,7 @@ from typing import Tuple, Optional
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import torch
 
 import sys
 sys.path.append(str(Path(__file__).parents[1]))
@@ -27,6 +28,7 @@ def main(**kwargs):
     step: Optional[int] = kwargs['step']
     win_size: Optional[int] = kwargs['win_size']
     show_heatmap: bool = kwargs['show_heatmap']
+    device: str = kwargs['device']
     save_results: bool = not kwargs['save_off']
 
     dset_emb: np.ndarray = np.load(dset_emb_path)  # (n_cls, n_samples, embed)
@@ -51,18 +53,42 @@ def main(**kwargs):
     # Предсказания для всех семплов в виде индексов классов
     predicts = np.empty((n_cls, n_samples), np.int32)
 
-    iterator = range(n_cls)
-    if show_progress:
-        desc = 'Вычисление угловых расстояний'
-        iterator = tqdm(iterator, desc=desc)
-    for cls_idx in iterator:
-        # (n_samples, n_cls)
-        cls_angles = angular_many2many(test_emb[cls_idx], dset_centroids)
-        mean_angles[cls_idx] = cls_angles.mean(axis=0)  # (n_cls,)
-        predicts[cls_idx] = cls_angles.argmin(axis=1)  # (n_samples)
+    if device == 'auto':
+        device: torch.device = (
+            torch.device('cuda') if torch.cuda.is_available()
+            else torch.device('cpu'))
+    else:
+        device: torch.device = torch.device(device)
 
-    files_prefix = (f'{dset_emb_path.name.split(".")[0]}_'
-                    f'{test_emb_path.name.split(".")[0]}_')
+    # Вычисления угловых расстояний на torch gpu
+    if device.type == 'cuda':
+        iterator = range(n_cls)
+        if show_progress:
+            desc = 'Вычисление угловых расстояний на cuda'
+            iterator = tqdm(iterator, desc=desc)
+        with torch.no_grad():
+            test_emb = torch.tensor(test_emb, device=device)
+            dset_centroids = torch.tensor(dset_centroids, device=device)
+            for cls_idx in iterator:
+                # (n_samples, n_cls)
+                cls_angles = angular_many2many(
+                    test_emb[cls_idx], dset_centroids)
+                mean_angles[cls_idx] = cls_angles.mean(axis=0).cpu().numpy()
+                predicts[cls_idx] = cls_angles.argmin(axis=1).cpu().numpy()
+
+    # Вычисления угловых расстояний на numpy cpu
+    elif device.type == 'cpu':
+        iterator = range(n_cls)
+        if show_progress:
+            desc = 'Вычисление угловых расстояний на cpu'
+            iterator = tqdm(iterator, desc=desc)
+        for cls_idx in iterator:
+            # (n_samples, n_cls)
+            cls_angles = angular_many2many(test_emb[cls_idx], dset_centroids)
+            mean_angles[cls_idx] = cls_angles.mean(axis=0)  # (n_cls,)
+            predicts[cls_idx] = cls_angles.argmin(axis=1)  # (n_samples)
+    else:
+        raise
 
     print('Angles:', mean_angles, sep='\n')
     mean_angle_total = np.mean(mean_angles)
@@ -78,8 +104,26 @@ def main(**kwargs):
 
     ground_truth = np.arange(n_cls)
     ground_truth = np.tile(ground_truth, (n_samples, 1)).T
-    cls_accuracy = np.stack([calculate_accuracy(predicts[i], ground_truth[i])
-                             for i in range(n_cls)])
+    cls_accuracy = np.empty((n_cls,), dtype=np.float32)
+    if device.type == 'cuda':
+        iterator = range(n_cls)
+        if show_progress:
+            desc = 'Вычисление точности на cuda'
+            iterator = tqdm(iterator, desc=desc)
+        for i in iterator:
+            cur_predicts = torch.from_numpy(predicts[i]).cuda()
+            cur_gt = torch.from_numpy(ground_truth[i]).cuda()
+            cls_accuracy[i] = (calculate_accuracy(cur_predicts, cur_gt)
+                               .cpu().numpy())
+    elif device.type == 'cpu':
+        iterator = range(n_cls)
+        if show_progress:
+            desc = 'Вычисление точности на cpu'
+            iterator = tqdm(iterator, desc=desc)
+        for i in iterator:
+            cls_accuracy[i] = calculate_accuracy(predicts[i], ground_truth[i])
+    else:
+        raise
 
     print('Predicted classes', predicts, sep='\n')
     print("Classes' accuracy", cls_accuracy, sep='\n')
@@ -149,6 +193,9 @@ def parse_args() -> argparse.Namespace:
         '--show_heatmap', action='store_true',
         help='отобразить изображение тепловой карты.')
     parser.add_argument(
+        '--device', type=str, default='auto', choices=['cpu', 'cuda', 'auto'],
+        help=('Устройство, на котором проводить вычисления. '
+              'auto выбирает cuda по возможности.'))
     parser.add_argument(
         '--save_off', action='store_false',
         help='Не сохранять результаты в файлы.')
