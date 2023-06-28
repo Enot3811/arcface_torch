@@ -181,16 +181,16 @@ def classify_samples(
 
 
 def calculate_accuracy(
-    predicts: np.ndarray,
-    ground_truth: np.ndarray
+    predicts: Union[np.ndarray, torch.Tensor],
+    ground_truth: Union[np.ndarray, torch.Tensor]
 ) -> float:
     """Вычислить точность `predicts` по отношению к `ground_truth`.
 
     Parameters
     ----------
-    predicts : np.ndarray
+    predicts : Union[np.ndarray, torch.Tensor]
         Вектор предсказанных классов с размерностью `(n_samples,)`.
-    ground_truth : np.ndarray
+    ground_truth : Union[np.ndarray, torch.Tensor]
         Вектор истинных классов с размерностью `(n_samples,)`.
 
     Returns
@@ -199,4 +199,4 @@ def calculate_accuracy(
         Значение точности от 0.0 до 1.0.
     """    
     n_samples = predicts.shape[0]
-    return np.sum(predicts == ground_truth) / n_samples
+    return (predicts == ground_truth).sum() / n_samples
